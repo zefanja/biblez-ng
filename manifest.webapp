@@ -1,0 +1,16 @@
+{
+    "name": "swordJS Demo",
+    "description": "A demo app to show the status of sword.js",
+    "launch_path": "/",
+    "icons": {
+        "128": "/assets/biblez128.png"
+    },
+    "developer": {
+        "name": "zefanjas",
+        "url": "http://zefanjas.de"
+    },
+    "default_locale": "en",
+    "permissions": {
+        "systemXHR": {}
+    }
+}

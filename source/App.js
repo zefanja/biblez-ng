@@ -1,17 +1,26 @@
 enyo.kind({
 	name: "App",
-	kind: "FittableRows",
-	fit: true,
-	components:[
-		{kind: "onyx.Toolbar", content: "Hello World"},
-		{kind: "enyo.Scroller", fit: true, components: [
-			{name: "main", classes: "nice-padding", allowHtml: true}
-		]},
-		{kind: "onyx.Toolbar", components: [
-			{kind: "onyx.Button", content: "Tap me", ontap: "helloWorldTap"}
-		]}
-	],
-	helloWorldTap: function(inSender, inEvent) {
-		this.$.main.addContent("The button was tapped.<br/>");
-	}
+	kind: "Panels",
+    fit: true,
+    classes: "app-panels",
+    arrangerKind: "CardArranger",
+    draggable: false,
+    components: [
+        {name: "main", kind: "biblez.main", onOpenModuleManager: "openModuleManager"},
+        {name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack"}
+        //{name: "settings"}
+    ],
+
+    rendered: function () {
+        this.inherited(arguments);
+        this.setIndex(1);
+    },
+
+    handleBack: function (inSender, inEvent) {
+        this.setIndex(0);
+    },
+
+    openModuleManager: function (inSender, inEvent) {
+        this.setIndex(1);
+    }
 });
