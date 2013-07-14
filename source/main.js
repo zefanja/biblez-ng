@@ -33,8 +33,6 @@ enyo.kind({
 		this.getBible();
 	},
 
-
-
 	getBible: function (inSender, inEvent) {
 		sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
 			if(inModules.length !== 0) {
@@ -72,7 +70,7 @@ enyo.kind({
 
 	handlePassage: function (inSender, inEvent) {
 		//console.log("PASSAGE", inSender.getValue());
-		this.bible.renderText(inSender.getValue(), enyo.bind(this, function (inError, inText) {
+		this.bible.renderText(inSender.getValue(), {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
 			//console.log(inError, inText);
 			this.$.main.setContent(inText);
 		}));
