@@ -26,6 +26,10 @@
     padding: 12px 16px;
 }
 
+.item-left {
+    width: 50px;
+}
+
 .content-container {
     margin: 10px;
 }

@@ -5,6 +5,7 @@ enyo.depends(
 	"$lib/sword/sword.min.js",
     "App.css",
     "api.js",
+    "mapping.js",
     "main.js",
     "moduleManager.js",
 	"App.js"

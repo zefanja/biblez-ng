@@ -7,18 +7,18 @@ enyo.kind({
     },
     components: [
         {kind: "onyx.MoreToolbar", components: [
-            {kind: "onyx.Button", content: $L("<"), ontap: "doBack"},
-            {content: $L("Module Manager")},
-            {kind: "onyx.PickerDecorator", components: [
-                {},
-                {name: "repoPicker", kind: "onyx.Picker", onSelect: "handleRepoChange"}
-            ]}
+            {kind: "onyx.Button", content: $L("Back"), ontap: "handleBack"},
+            {content: $L("Module Manager")}
         ]},
         {name: "panel", arrangerKind: "CollapsingArranger", fit: true, kind: "Panels", classes: "app-panels", components: [
             {name: "panelLang", kind: "enyo.FittableRows", components: [
                 {name: "langList", kind: "List", fit: true, touch: true, onSetupItem: "setupLangItem", components: [
                     {classes: "item", ontap: "handleLanguage", components: [
-                        {name: "langName"}
+                        {kind: "enyo.FittableColumns", components: [
+                            {name: "langShort", classes: "item-left"},
+                            {name: "langName", style: "font-style: italic;"}
+                        ]}
+
                     ]}
                 ]}
             ]},
@@ -33,18 +33,25 @@ enyo.kind({
                 {kind: enyo.Scroller, touch: true, fit: true, components: [
                     {name: "detailsContainer", showing: false, classes: "content-container", components: [
                         {name: "detailsName", classes: "title"},
-                        {kind: "onyx.Button", onTap: "installModule", name: "btnInstall", content: $L("Install Module"), style: "margin-left: 10px;"},
+                        {kind: "onyx.Button", ontap: "installModule", name: "btnInstall", content: $L("Install Module"), classes: "onyx-affirmative", style: "margin-left: 10px;"},
                         {name: "detailsDescription", allowHtml: true, classes: "nice-padding"}
                     ]}
                 ]}
             ]}
-        ]}
+        ]},
+        {kind: "onyx.MoreToolbar", components: [
+            {kind: "onyx.PickerDecorator", components: [
+                {},
+                {name: "repoPicker", kind: "onyx.Picker", onSelect: "handleRepoChange"}
+            ]}
+        ]},
     ],
 
     lang: [],
     repos: [],
     modules: [],
     langModules: [],
+    currentModule: null,
 
     rendered: function () {
         this.inherited(arguments);
@@ -54,9 +61,19 @@ enyo.kind({
             this.setupRepoPicker();
     },
 
+    handleBack: function() {
+        if(enyo.Panels.isScreenNarrow()) {
+            if(this.$.panel.getIndex() !== 0)
+                this.$.panel.previous();
+            else
+                this.doBack();
+        } else this.doBack();
+    },
+
     handleRepoChange: function (inSender, inEvent) {
         this.$.detailsContainer.hide();
         api.set("currentRepo", this.repos[inEvent.selected.index]);
+        this.getRemoteModules(this.repos[inEvent.selected.index]);
     },
 
     getRepos: function () {
@@ -92,12 +109,13 @@ enyo.kind({
     },
 
     getRemoteModules: function (inRepo) {
+        //console.log(inRepo);
         var currentModules = api.get("currentModules");
         if(currentModules && inRepo.name === currentModules.name) {
             this.modules = currentModules.modules;
             this.prepareLangList(this.modules);
         } else {
-            sword.installMgr.getModules(inRepo.confUrl, enyo.bind(this, function (inError, inModules) {
+            sword.installMgr.getModules(inRepo, enyo.bind(this, function (inError, inModules) {
                 enyo.log(inError, inModules, inModules.length);
                 if(!inError) {
                     api.set("currentModules", {modules: inModules, name: inRepo.name});
@@ -126,11 +144,15 @@ enyo.kind({
 
     setupLangItem: function(inSender, inEvent) {
         var data = this.lang[inEvent.index];
-        this.$.langName.setContent(data.lang);
+        this.$.langShort.setContent(data.lang);
+        this.$.langName.setContent(languages[data.lang]);
         //this.$.index.setContent(inEvent.index);
     },
 
     handleLanguage: function(inSender, inEvent) {
+        if(enyo.Panels.isScreenNarrow()) {
+            this.$.panel.next();
+        }
         this.langModules = [];
         this.modules.forEach(enyo.bind(this, function (module, idx) {
             if(module.Lang === this.lang[inEvent.index].lang)
@@ -147,9 +169,22 @@ enyo.kind({
     },
 
     handleModule: function (inSender, inEvent) {
+        if(enyo.Panels.isScreenNarrow()) {
+            this.$.panel.next();
+        }
         this.$.detailsContainer.show();
         var data = this.langModules[inEvent.index];
+        this.currentModule = data;
         this.$.detailsName.setContent(data.Description);
-        this.$.detailsDescription.setContent(data.About.replace(/\\par/g, "<br></br>"));
+        this.$.detailsDescription.setContent(data.About.replace(/\\par/g, "<br>"));
+    },
+
+    installModule: function (inSender, inEvent) {
+        console.log(this.currentModule.url);
+        this.$.btnInstall.setContent($L("Installing..."));
+        sword.installMgr.installModule(this.currentModule.url, enyo.bind(this, function (inError, inModule) {
+            console.log(inError, inModule);
+            this.$.btnInstall.setContent($L("Installed Module"));
+        }));
     }
 });
