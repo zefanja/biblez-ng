@@ -3,9 +3,11 @@ enyo.kind({
     kind: "enyo.FittableRows",
     fit: true,
     events: {
-        onBack: ""
+        onBack: "",
+        onInstalled: ""
     },
     components: [
+        {name: "scrim", kind: "onyx.Scrim", classes: "onyx-scrim-translucent"},
         {kind: "onyx.MoreToolbar", components: [
             {kind: "onyx.Button", content: $L("Back"), ontap: "handleBack"},
             {content: $L("Module Manager")}
@@ -33,21 +35,24 @@ enyo.kind({
                 {kind: enyo.Scroller, touch: true, fit: true, components: [
                     {name: "detailsContainer", showing: false, classes: "content-container", components: [
                         {name: "detailsName", classes: "title"},
-                        {kind: "onyx.Button", ontap: "installModule", name: "btnInstall", content: $L("Install Module"), classes: "onyx-affirmative", style: "margin-left: 10px;"},
+                        //{kind: "onyx.ProgressBar", name: "progressBar", progress: 0, showing: false, showStripes: false},
+                        {kind: "onyx.Button", ontap: "installModule", name: "btnInstall", classes: "onyx-affirmative", content: $L("Install Module"), style: "margin-left: 10px;"},
                         {name: "detailsDescription", allowHtml: true, classes: "nice-padding"}
                     ]}
                 ]}
             ]}
         ]},
-        {kind: "onyx.MoreToolbar", components: [
+        {kind: "onyx.MoreToolbar", name: "bottomTB", components: [
             {kind: "onyx.PickerDecorator", components: [
                 {},
                 {name: "repoPicker", kind: "onyx.Picker", onSelect: "handleRepoChange"}
-            ]}
-        ]},
+            ]},
+            {kind: "onyx.ProgressBar", name: "progressBar", progress: 0, showing: false, showStripes: false, fit: true}
+        ]}
     ],
 
     lang: [],
+    started: false,
     repos: [],
     modules: [],
     langModules: [],
@@ -55,10 +60,18 @@ enyo.kind({
 
     rendered: function () {
         this.inherited(arguments);
-        if (!api.get("lastRepoUpdate"))
-            this.getRepos();
-        else
-            this.setupRepoPicker();
+
+    },
+
+    start: function () {
+        if (!this.started) {
+            this.$.scrim.show();
+            if (!api.get("lastRepoUpdate"))
+                this.getRepos();
+            else
+                this.setupRepoPicker();
+        }
+        this.started = true;
     },
 
     handleBack: function() {
@@ -72,6 +85,10 @@ enyo.kind({
 
     handleRepoChange: function (inSender, inEvent) {
         this.$.detailsContainer.hide();
+        this.$.scrim.show();
+        this.$.modList.setCount(0);
+        this.$.modList.refresh();
+        this.$.panel.setIndex(0);
         api.set("currentRepo", this.repos[inEvent.selected.index]);
         this.getRemoteModules(this.repos[inEvent.selected.index]);
     },
@@ -140,6 +157,7 @@ enyo.kind({
         }));
         this.$.langList.setCount(this.lang.length);
         this.$.langList.refresh();
+        this.$.scrim.hide();
     },
 
     setupLangItem: function(inSender, inEvent) {
@@ -181,10 +199,18 @@ enyo.kind({
 
     installModule: function (inSender, inEvent) {
         console.log(this.currentModule.url);
-        this.$.btnInstall.setContent($L("Installing..."));
+        this.$.btnInstall.setDisabled(true);
+        this.$.progressBar.show();
+        this.$.bottomTB.render();
         sword.installMgr.installModule(this.currentModule.url, enyo.bind(this, function (inError, inModule) {
+            this.doInstalled();
             console.log(inError, inModule);
-            this.$.btnInstall.setContent($L("Installed Module"));
+            this.$.progressBar.hide();
+            this.$.progressBar.setProgress(0);
+            this.$.btnInstall.setDisabled(false);
+        }),
+        enyo.bind(this, function (inEvent) {
+            this.$.progressBar.animateProgressTo(inEvent.loaded/inEvent.total*100);
         }));
     }
 });
