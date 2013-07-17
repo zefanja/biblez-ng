@@ -46,3 +46,22 @@
     font-size: 1.2em;
     padding: 10px;
 }
+
+/* BOOK CHAPTER SELECTOR */
+.bc-item {
+    height: 30px;
+    width: 50px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    padding: 10px 5px 5px 5px;
+    float: left;
+    vertical-align: middle;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* POPUPs */
+.message-popup {
+    text-align: center;
+    padding: 10px;
+}

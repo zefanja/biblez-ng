@@ -3,18 +3,25 @@ enyo.kind({
 	kind: "FittableRows",
 	fit: true,
 	events: {
-		onOpenModuleManager: ""
+		onOpenModuleManager: "",
+		onModuleChanged: "",
+        onOpenBC: ""
+	},
+	published: {
+        passage: ""
 	},
 	components:[
 		//{kind: "Signals", onSwordReady: "getBible"},
+        {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
 		{kind: "onyx.MoreToolbar", components: [
 			{kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
 				{kind: "onyx.IconButton", src: "assets/modules.png"},
 				{kind: "onyx.Menu", name: "moduleMenu"}
 			]},
-			{kind: "onyx.InputDecorator", components: [
+            {kind: "onyx.Button", name: "btnPassage", ontap: "doOpenBC"}
+			/*{kind: "onyx.InputDecorator", components: [
 				{kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
-			]}
+			]}*/
 		]},
 		{kind: "enyo.Scroller", touch: true, fit: true, components: [
 			{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light"},
@@ -29,6 +36,7 @@ enyo.kind({
 	],
 
 	currentModule: null,
+    currentPassage: "Matt 1",
 	modules: [],
 
 	create: function () {
@@ -43,27 +51,32 @@ enyo.kind({
 
 	getInstalledModules: function (inSender, inEvent) {
 		sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
-			if(inModules.length !== 0) {
-				this.currentModule = inModules[0];
-				this.handlePassage();
-				//this.$.moduleLabel.setContent(this.currentModule.config.moduleKey);
-				this.modules = inModules;
-				var mods = [];
-				this.modules.forEach(enyo.bind(this, function (mod, idx) {
-					if (this.currentModule.modKey === mod.modKey || idx === 0)
-						mods.push({content: mod.config.moduleKey, index: idx, active: true});
-					else
-						mods.push({content: mod.config.moduleKey, index: idx});
-				}));
-				this.$.moduleMenu.createComponents(mods, {owner: this.$.moduleMenu});
-				this.$.moduleMenu.render();
-			}
+            if (!inError) {
+                if(inModules.length !== 0) {
+                    this.currentModule = inModules[0];
+                    this.doModuleChanged({module: this.currentModule});
+                    this.handlePassage();
+                    //this.$.moduleLabel.setContent(this.currentModule.config.moduleKey);
+                    this.modules = inModules;
+                    var mods = [];
+                    this.modules.forEach(enyo.bind(this, function (mod, idx) {
+                        if (this.currentModule.modKey === mod.modKey || idx === 0)
+                            mods.push({content: mod.config.moduleKey, index: idx, active: true});
+                        else
+                            mods.push({content: mod.config.moduleKey, index: idx});
+                        }));
+                    this.$.moduleMenu.createComponents(mods, {owner: this.$.moduleMenu});
+                    this.$.moduleMenu.render();
+                }
+            } else {
+                this.handleError(inError);
+            }
 		}));
 	},
 
 	moduleSelected: function (inSender, inEvent) {
 		this.currentModule = this.modules[inEvent.originator.index];
-		//this.$.moduleLabel.setContent(this.currentModule.config.moduleKey);
+		this.doModuleChanged({module: this.currentModule});
 		this.handlePassage();
 	},
 
@@ -84,8 +97,11 @@ enyo.kind({
 					if(!inError) {
 						self.$.main.setContent(enyo.json.stringify(inModule.config));
 						self.$.moduleLabel.setContent(inModule.config.moduleKey);
-					}
+					} else
+                        this.handleError(inError);
 				});
+            else
+                this.handleError(inError);
 		});
 	},
 
@@ -93,13 +109,27 @@ enyo.kind({
 		sword.dataMgr.clearDatabase();
 	},
 
-	handlePassage: function (inSender, inEvent) {
+    passageChanged: function (inSender, inEvent) {
+        this.currentPassage = inEvent.book.abbrev + " " + inEvent.chapter;
+        this.handlePassage(inEvent.osis);
+    },
+
+	handlePassage: function (passage) {
 		//console.log("PASSAGE", inSender.getValue());
-		if(!inSender)
-			inSender = this.$.passageInput;
-		this.currentModule.renderText(inSender.getValue(), {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
-			//console.log(inError, inText);
-			this.$.main.setContent(inText);
+		if(!passage)
+			passage = this.currentPassage;
+        this.$.btnPassage.setContent(this.currentPassage);
+		this.currentModule.renderText(passage, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
+			console.log(inError);
+            if(!inError)
+                this.$.main.setContent(inText);
+            else
+                this.handleError(inError);
 		}));
-	}
+	},
+
+    handleError: function (inMessage) {
+        this.$.messagePopup.setContent(inMessage);
+        this.$.messagePopup.show();
+    }
 });

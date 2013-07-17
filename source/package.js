@@ -6,6 +6,7 @@ enyo.depends(
     "App.css",
     "api.js",
     "mapping.js",
+    "bcSelector.js",
     "main.js",
     "moduleManager.js",
 	"App.js"

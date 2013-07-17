@@ -205,7 +205,9 @@ enyo.kind({
         this.$.progressBar.show();
         this.$.bottomTB.render();
         sword.installMgr.installModule(this.currentModule.url, enyo.bind(this, function (inError, inModule) {
-            this.doInstalled();
+            if (!inError) {
+                this.doInstalled();
+            }
             //console.log(inError, inModule);
             this.$.progressBar.hide();
             this.$.progressBar.setProgress(0);
