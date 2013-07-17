@@ -9,7 +9,7 @@ enyo.kind({
 		//{kind: "Signals", onSwordReady: "getBible"},
 		{kind: "onyx.MoreToolbar", components: [
 			{kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
-				{content: "", name: "moduleLabel"},
+				{kind: "onyx.IconButton", src: "assets/modules.png"},
 				{kind: "onyx.Menu", name: "moduleMenu"}
 			]},
 			{kind: "onyx.InputDecorator", components: [
@@ -21,7 +21,7 @@ enyo.kind({
 			{name: "main", classes: "nice-padding", allowHtml: true}
 		]},
 		{kind: "onyx.MoreToolbar", components: [
-			{kind: "onyx.IconButton", src: "assets/modules.png", ontap: "doOpenModuleManager"},
+			{kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"},
 			{kind: "onyx.Button", content: "Delete all Modules", ontap: "clearDB"}
 			//{kind: "onyx.Button", content: "Install ESV", esv: true, ontap: "handleInstallTap"},
 			//{kind: "Input", type: "file", onchange: "handleInstallTap"}
@@ -34,19 +34,26 @@ enyo.kind({
 	create: function () {
 		this.inherited(arguments);
 		this.$.spinner.stop();
-		this.getInstalledModules();
+        this.getInstalledModules();
 	},
+
+    rendered: function () {
+        this.inherited(arguments);
+    },
 
 	getInstalledModules: function (inSender, inEvent) {
 		sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
 			if(inModules.length !== 0) {
 				this.currentModule = inModules[0];
 				this.handlePassage();
-				this.$.moduleLabel.setContent(this.currentModule.config.moduleKey);
+				//this.$.moduleLabel.setContent(this.currentModule.config.moduleKey);
 				this.modules = inModules;
 				var mods = [];
 				this.modules.forEach(enyo.bind(this, function (mod, idx) {
-					mods.push({content: mod.config.moduleKey, index: idx});
+					if (this.currentModule.modKey === mod.modKey || idx === 0)
+						mods.push({content: mod.config.moduleKey, index: idx, active: true});
+					else
+						mods.push({content: mod.config.moduleKey, index: idx});
 				}));
 				this.$.moduleMenu.createComponents(mods, {owner: this.$.moduleMenu});
 				this.$.moduleMenu.render();
@@ -56,7 +63,7 @@ enyo.kind({
 
 	moduleSelected: function (inSender, inEvent) {
 		this.currentModule = this.modules[inEvent.originator.index];
-		this.$.moduleLabel.setContent(this.currentModule.config.moduleKey);
+		//this.$.moduleLabel.setContent(this.currentModule.config.moduleKey);
 		this.handlePassage();
 	},
 

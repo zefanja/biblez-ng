@@ -9,7 +9,7 @@ enyo.kind({
     components: [
         {name: "scrim", kind: "onyx.Scrim", classes: "onyx-scrim-translucent"},
         {kind: "onyx.MoreToolbar", components: [
-            {kind: "onyx.Button", content: $L("Back"), ontap: "handleBack"},
+            {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
             {content: $L("Module Manager")}
         ]},
         {name: "panel", arrangerKind: "CollapsingArranger", fit: true, kind: "Panels", classes: "app-panels", components: [
@@ -95,22 +95,25 @@ enyo.kind({
 
     getRepos: function () {
         sword.installMgr.getRepositories(enyo.bind(this, function (inError, inRepos) {
-            console.log(inError, inRepos);
-            api.set("repos", inRepos);
-            api.set("lastRepoUpdate", {time: new Date().getTime()});
-            this.setupRepoPicker(inRepos);
+            if (!inError) {
+                api.set("repos", inRepos);
+                api.set("lastRepoUpdate", {time: new Date().getTime()});
+                this.setupRepoPicker(inRepos);
+            }
         }));
     },
 
     setupRepoPicker: function (inRepos) {
-        if(!inRepos)
+        //console.log("setupRepoPicker", inRepos);
+        if(!inRepos) {
             inRepos = api.get("repos");
+        }
 
         var items = [],
             cw = null;
         var currentRepo = api.get("currentRepo");
         inRepos.forEach(function(repo,idx) {
-            if (repo.name === currentRepo.name || repo.name === "CrossWire") {
+            if ((currentRepo && repo.name === currentRepo.name) || repo.name === "CrossWire") {
                 items.push({content: repo.name, index: idx, active: true});
                 cw = repo;
             } else items.push({content: repo.name, index: idx});
@@ -120,7 +123,6 @@ enyo.kind({
         this.$.repoPicker.createComponents(items, {owner: this});
         this.$.repoPicker.render();
 
-        enyo.log("currentRepo:", currentRepo);
         if(currentRepo) this.getRemoteModules(currentRepo);
         else this.getRemoteModules(cw);
     },
@@ -133,7 +135,7 @@ enyo.kind({
             this.prepareLangList(this.modules);
         } else {
             sword.installMgr.getModules(inRepo, enyo.bind(this, function (inError, inModules) {
-                enyo.log(inError, inModules, inModules.length);
+                //enyo.log(inError, inModules, inModules.length);
                 if(!inError) {
                     api.set("currentModules", {modules: inModules, name: inRepo.name});
                     this.modules = inModules;
@@ -204,7 +206,7 @@ enyo.kind({
         this.$.bottomTB.render();
         sword.installMgr.installModule(this.currentModule.url, enyo.bind(this, function (inError, inModule) {
             this.doInstalled();
-            console.log(inError, inModule);
+            //console.log(inError, inModule);
             this.$.progressBar.hide();
             this.$.progressBar.setProgress(0);
             this.$.btnInstall.setDisabled(false);
