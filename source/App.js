@@ -1,5 +1,5 @@
 enyo.kind({
-	name: "App",
+    name: "App",
     kind: enyo.FittableRows,
     fit: true,
     components: [

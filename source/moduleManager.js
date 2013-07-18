@@ -7,6 +7,7 @@ enyo.kind({
         onInstalled: ""
     },
     components: [
+        {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {name: "scrim", kind: "onyx.Scrim", classes: "onyx-scrim-translucent"},
         {kind: "onyx.MoreToolbar", components: [
             {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
@@ -99,6 +100,8 @@ enyo.kind({
                 api.set("repos", inRepos);
                 api.set("lastRepoUpdate", {time: new Date().getTime()});
                 this.setupRepoPicker(inRepos);
+            } else {
+                this.handleError((inError.message) ? inError.message : inError);
             }
         }));
     },
@@ -142,6 +145,8 @@ enyo.kind({
                     //this.$.langList.setCount(inModules.length);
                     this.prepareLangList(this.modules);
 
+                } else {
+                    this.handleError((inError.message) ? inError.message : inError);
                 }
             }));
         }
@@ -207,6 +212,8 @@ enyo.kind({
         sword.installMgr.installModule(this.currentModule.url, enyo.bind(this, function (inError, inModule) {
             if (!inError) {
                 this.doInstalled();
+            } else {
+                this.handleError((inError.message) ? inError.message : inError);
             }
             //console.log(inError, inModule);
             this.$.progressBar.hide();
@@ -216,5 +223,10 @@ enyo.kind({
         enyo.bind(this, function (inEvent) {
             this.$.progressBar.animateProgressTo(inEvent.loaded/inEvent.total*100);
         }));
+    },
+
+    handleError: function (inMessage) {
+        this.$.messagePopup.setContent(inMessage);
+        this.$.messagePopup.show();
     }
 });
