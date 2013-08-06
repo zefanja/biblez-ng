@@ -7,3 +7,6 @@
 [submodule "lib/layout"]
 	path = lib/layout
 	url = ../../enyojs/layout.git
+[submodule "lib/sword"]
+	path = lib/sword
+	url = https://github.com/zefanja/swordjs.git
