@@ -23,7 +23,7 @@ enyo.kind({
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
         ]},
-        {kind: "enyo.Scroller", touch: true, fit: true, components: [
+        {kind: "enyo.Scroller", touch: true, fit: true, classes: "background", components: [
             {kind: "onyx.Spinner", name: "spinner", classes: "onyx-light"},
             {name: "main", classes: "nice-padding", allowHtml: true}
         ]},

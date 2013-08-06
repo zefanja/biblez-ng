@@ -1,0 +1,17 @@
+{
+    "name": "BibleZ",
+    "description": "Read and study the Bible!",
+    "launch_path": "/index.html",
+    "icons": {
+        "128": "/assets/biblez128.png"
+    },
+    "developer": {
+        "name": "zefanjas",
+        "url": "http://zefanjas.de"
+    },
+    "default_locale": "en",
+    "type": "privileged",
+    "permissions": {
+        "systemXHR": {}
+    }
+}
