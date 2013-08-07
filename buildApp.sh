@@ -1,3 +1,3 @@
 #!/bin/sh
 sh tools/deploy.sh
-cp manifest.deploy deploy/biblez-enyo/manifest.webapp
+cp manifest.deploy deploy/biblez-ng/manifest.webapp

@@ -1,3 +1,10 @@
+enyo.ready(function() {
+    if (!window.App) {
+        alert('No application build found, please open debug.html.');
+    }
+    new App().renderInto(document.body);
+});
+
 enyo.kind({
     name: "App",
     kind: enyo.FittableRows,
