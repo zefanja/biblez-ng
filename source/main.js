@@ -23,9 +23,21 @@ enyo.kind({
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
         ]},
-        {kind: "enyo.Scroller", touch: true, fit: true, classes: "background", components: [
-            {kind: "onyx.Spinner", name: "spinner", classes: "onyx-light"},
-            {name: "main", classes: "nice-padding", allowHtml: true}
+        {name: "mainPanel", kind: "Panels", fit: true, onTransitionFinish: "handleChangeChapter", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+            {},
+            {kind: "FittableColumns", noStretch: true, components: [
+                {fit: true},
+                {content: "< Previous", classes: "chapter-nav chapter-nav-left"}
+            ]},
+            {name: "verseScroller", kind: "enyo.Scroller", touch: true, fit: true, components: [
+                {kind: "onyx.Spinner", name: "spinner", classes: "onyx-light"},
+                {name: "main", classes: "nice-padding", allowHtml: true}
+            ]},
+            {kind: "FittableColumns", noStretch: true, components: [
+                {content: "Next >", classes: "chapter-nav chapter-nav-right"},
+                {fit: true}
+            ]},
+            {},
         ]},
         {kind: "onyx.MoreToolbar", components: [
             {kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"},
@@ -43,6 +55,7 @@ enyo.kind({
         this.inherited(arguments);
         this.$.spinner.stop();
         this.getInstalledModules();
+        this.$.mainPanel.setIndexDirect(2);
     },
 
     rendered: function () {
@@ -139,16 +152,25 @@ enyo.kind({
 
     handlePassage: function (passage) {
         //console.log("PASSAGE", inSender.getValue());
-        if(!passage)
-            passage = this.currentPassage;
-        this.$.btnPassage.setContent(this.currentPassage);
-        this.currentModule.renderText(passage, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
+        this.currentPassage = (!passage) ? this.currentPassage : passage;
+        this.$.btnPassage.setContent(this.currentPassage.replace(".", " "));
+        this.currentModule.renderText(this.currentPassage, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
             console.log(inError);
-            if(!inError)
+            if(!inError) {
+                this.$.verseScroller.scrollToTop();
                 this.$.main.setContent(inText);
-            else
-                this.handleError(inError);
+            } else
+                this.handleError(inError.message);
         }));
+    },
+
+    handleChangeChapter: function (inSender, inEvent) {
+        if(inEvent.toIndex === 1) {
+            this.handlePassage(sword.verseKey.previous(this.currentPassage, this.currentModule.config.Versification).osis);
+        } else if(inEvent.toIndex === 3) {
+            this.handlePassage(sword.verseKey.next(this.currentPassage, this.currentModule.config.Versification).osis);
+        }
+        this.$.mainPanel.setIndexDirect(2);
     },
 
     handleError: function (inMessage) {

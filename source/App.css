@@ -30,6 +30,25 @@
     width: 45px;
 }
 
+.chapter-nav {
+    position: absolute;
+    top: 45%;
+    border-radius: 10px;
+    background-color: rgba(205,133,63,0.5);
+    font-weight: bold;
+}
+
+.chapter-nav-left {
+    padding: 10px;
+    margin-right: 10px;
+    min-width: 105px;
+}
+
+.chapter-nav-right {
+    padding: 10px;
+    margin-left: 10px;
+}
+
 /* MODULE MANAGER */
 
 .item {
