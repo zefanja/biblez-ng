@@ -63,3 +63,8 @@ enyo.kind({
         this.$.main.setPassage(inEvent);
     }
 });
+
+window.screen.onmozorientationchange = function () {
+    enyo.Signals.send("onOrientationChange");
+};
+

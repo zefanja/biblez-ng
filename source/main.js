@@ -11,26 +11,28 @@ enyo.kind({
         passage: ""
     },
     components:[
-        //{kind: "Signals", onSwordReady: "getBible"},
+        {kind: "Signals", onOrientationChange: "handleOrientation"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
-        {kind: "onyx.MoreToolbar", components: [
+        {kind: "onyx.MoreToolbar", name: "topTB", components: [
             {kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/modules.png"},
                 {kind: "onyx.Menu", name: "moduleMenu"}
             ]},
-            {kind: "onyx.Button", name: "btnPassage", ontap: "doOpenBC"}
+            {kind: "onyx.Button", name: "btnPassage", ontap: "doOpenBC"},
+            {fit: true},
+            {kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"}
             /*{kind: "onyx.InputDecorator", components: [
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
         ]},
-        {name: "mainPanel", kind: "Panels", fit: true, onTransitionFinish: "handleChangeChapter", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+        {name: "mainPanel", kind: "Panels", fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
             {},
             {kind: "FittableColumns", noStretch: true, components: [
                 {fit: true},
                 {content: "< Previous", classes: "chapter-nav chapter-nav-left"}
             ]},
             {name: "verseScroller", kind: "enyo.Scroller", touch: true, fit: true, components: [
-                {kind: "onyx.Spinner", name: "spinner", classes: "onyx-light"},
+                {classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
                 {name: "main", classes: "nice-padding", allowHtml: true}
             ]},
             {kind: "FittableColumns", noStretch: true, components: [
@@ -39,17 +41,17 @@ enyo.kind({
             ]},
             {},
         ]},
-        {kind: "onyx.MoreToolbar", components: [
-            {kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"},
-            {kind: "onyx.Button", content: "Delete all Modules", ontap: "clearDB"}
+        /*{kind: "onyx.MoreToolbar", components: [
+            {kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"}
             //{kind: "onyx.Button", content: "Install ESV", esv: true, ontap: "handleInstallTap"},
             //{kind: "Input", type: "file", onchange: "handleInstallTap"}
-        ]}
+        ]}*/
     ],
 
     currentModule: null,
     currentPassage: "Matt 1",
     modules: [],
+    panelIndex: 2,
 
     create: function () {
         this.inherited(arguments);
@@ -141,10 +143,6 @@ enyo.kind({
         });
     },
 
-    clearDB: function () {
-        sword.dataMgr.clearDatabase();
-    },
-
     passageChanged: function (inSender, inEvent) {
         this.currentPassage = inEvent.book.abbrev + " " + inEvent.chapter;
         this.handlePassage(inEvent.osis);
@@ -152,10 +150,13 @@ enyo.kind({
 
     handlePassage: function (passage) {
         //console.log("PASSAGE", inSender.getValue());
+        this.$.main.setContent("");
+        this.$.spinner.start();
+
         this.currentPassage = (!passage) ? this.currentPassage : passage;
         this.$.btnPassage.setContent(this.currentPassage.replace(".", " "));
         this.currentModule.renderText(this.currentPassage, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
-            console.log(inError);
+            this.$.spinner.stop();
             if(!inError) {
                 this.$.verseScroller.scrollToTop();
                 this.$.main.setContent(inText);
@@ -165,12 +166,28 @@ enyo.kind({
     },
 
     handleChangeChapter: function (inSender, inEvent) {
-        if(inEvent.toIndex === 1) {
-            this.handlePassage(sword.verseKey.previous(this.currentPassage, this.currentModule.config.Versification).osis);
-        } else if(inEvent.toIndex === 3) {
-            this.handlePassage(sword.verseKey.next(this.currentPassage, this.currentModule.config.Versification).osis);
+        if(this.currentModule) {
+            if(this.panelIndex === 1) {
+                this.handlePassage(sword.verseKey.previous(this.currentPassage, this.currentModule.config.Versification).osis);
+            } else if(this.panelIndex === 3) {
+                this.handlePassage(sword.verseKey.next(this.currentPassage, this.currentModule.config.Versification).osis);
+            }
         }
         this.$.mainPanel.setIndexDirect(2);
+    },
+
+    handlePanelIndex: function (inSender, inEvent) {
+        this.panelIndex = inEvent.toIndex;
+    },
+
+    handleOrientation: function (inSender, inEvent) {
+        var orientation = screen.mozOrientation;
+        if (orientation === "portrait-primary" || orientation === "portrait-secondary" ) {
+            this.$.topTB.show();
+        }
+        else if (orientation === "landscape-primary" || orientation === "landscape-secondary" ) {
+            this.$.topTB.hide();
+        }
     },
 
     handleError: function (inMessage) {

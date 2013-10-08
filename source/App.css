@@ -30,6 +30,10 @@
     width: 45px;
 }
 
+.center {
+    text-align: center;
+}
+
 .chapter-nav {
     position: absolute;
     top: 45%;
@@ -87,4 +91,13 @@
 .message-popup {
     text-align: center;
     padding: 10px;
+}
+
+/* BIBLE TEXT STYLE */
+.verse-number {
+    font-weight: bold;
+}
+
+h3, h1 {
+    font-size: 1.3em;
 }
