@@ -61,18 +61,15 @@ enyo.kind({
     langModules: [],
     currentModule: null,
 
-    rendered: function () {
-        this.inherited(arguments);
-
-    },
-
     start: function () {
         if (!this.started) {
             this.$.scrim.show();
-            if (!api.get("lastRepoUpdate"))
-                this.getRepos();
-            else
-                this.setupRepoPicker();
+            api.get("repos", enyo.bind(this, function (inError, inData) {
+                if(!inData)
+                    this.getRepos();
+                else
+                    this.setupRepoPicker(inData.repos, inData.currentRepo);
+            }));
         }
         this.started = true;
     },
@@ -92,32 +89,38 @@ enyo.kind({
         this.$.modList.setCount(0);
         this.$.modList.refresh();
         this.$.panel.setIndex(0);
-        api.set("currentRepo", this.repos[inEvent.selected.index]);
+        api.get("repos", enyo.bind(this, function(inError, inRepos) {
+            if(!inError) {
+                inRepos["currentRepo"] = this.repos[inEvent.selected.index];
+                api.put(inRepos);
+            } else
+                this.handleError(inError);
+        }));
         this.getRemoteModules(this.repos[inEvent.selected.index]);
     },
 
     getRepos: function () {
         sword.installMgr.getRepositories(enyo.bind(this, function (inError, inRepos) {
             if (!inError) {
-                api.set("repos", inRepos);
-                api.set("lastRepoUpdate", {time: new Date().getTime()});
-                this.setupRepoPicker(inRepos);
+                api.put({id: "repos", repos: inRepos, lastRepoUpdate: {time: new Date().getTime()}},
+                    enyo.bind(this, function (inError, inId) {
+                        if(!inError)
+                            this.setupRepoPicker(inRepos);
+                        else
+                            this.handleError(inError);
+                    })
+                );
+
             } else {
-                this.handleError((inError.message) ? inError.message : inError);
+                this.handleError(inError);
             }
         }));
     },
 
-    setupRepoPicker: function (inRepos) {
-        //console.log("setupRepoPicker", inRepos);
-        if(!inRepos) {
-            inRepos = api.get("repos");
-        }
-
+    setupRepoPicker: function (inRepos, currentRepo) {
         var items = [],
             cw = null;
-        var currentRepo = api.get("currentRepo");
-        inRepos.forEach(function(repo,idx) {
+        inRepos.forEach(function(repo, idx) {
             if ((currentRepo && repo.name === currentRepo.name) || repo.name === "CrossWire") {
                 items.push({content: repo.name, index: idx, active: true});
                 cw = repo;
@@ -128,30 +131,39 @@ enyo.kind({
         this.$.repoPicker.createComponents(items, {owner: this});
         this.$.repoPicker.render();
 
-        if(currentRepo) this.getRemoteModules(currentRepo);
-        else this.getRemoteModules(cw);
+        if (currentRepo)
+            this.getRemoteModules(currentRepo);
+        else
+            this.getRemoteModules(cw);
     },
 
     getRemoteModules: function (inRepo) {
         //console.log(inRepo);
-        var currentModules = api.get("currentModules");
-        if(currentModules && inRepo.name === currentModules.name) {
-            this.modules = currentModules.modules;
-            this.prepareLangList(this.modules);
-        } else {
-            sword.installMgr.getModules(inRepo, enyo.bind(this, function (inError, inModules) {
-                //enyo.log(inError, inModules, inModules.length);
-                if(!inError) {
-                    api.set("currentModules", {modules: inModules, name: inRepo.name});
-                    this.modules = inModules;
-                    //this.$.langList.setCount(inModules.length);
+        api.get("currentModules", enyo.bind(this, function (inError, currentModules) {
+            if(!inError) {
+                if(currentModules && inRepo.name === currentModules.name) {
+                    this.modules = currentModules.modules;
                     this.prepareLangList(this.modules);
-
                 } else {
-                    this.handleError((inError.message) ? inError.message : inError);
+                    sword.installMgr.getModules(inRepo, enyo.bind(this, function (inError, inModules) {
+                        //enyo.log(inError, inModules, inModules.length);
+                        if(!inError) {
+                            api.put({id: "currentModules", modules: inModules, name: inRepo.name}, enyo.bind(this, function (inError, inId) {
+                                if(inError)
+                                    this.handleError(inError);
+                            }));
+                            this.modules = inModules;
+                            this.prepareLangList(this.modules);
+
+                        } else {
+                            this.handleError((inError.message) ? inError.message : inError);
+                        }
+                    }));
                 }
-            }));
-        }
+            } else
+                this.handleError(inError);
+        }));
+
     },
 
     prepareLangList: function (inModules) {
@@ -232,6 +244,8 @@ enyo.kind({
     },
 
     handleError: function (inMessage) {
+        if (inMessage.message)
+            inMessage = inMessage.message;
         this.$.messagePopup.setContent(inMessage);
         this.$.messagePopup.show();
     }

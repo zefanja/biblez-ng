@@ -1,42 +1,59 @@
 var api = {
-    /* Set the value of item[key] to the stringified version of obj. */
-    set: function(name, obj){
-        localStorage.setItem(name, JSON.stringify(obj));
-    },
+    isInitialized: false,
+    db: null,
 
-    /* Get the item with the key 'name'. */
-    get: function(name){
-        var result;
-        if(typeof name === "string") {
-            result = localStorage.getItem(name);
-        }
-
-        if(typeof result === "string"){
-            return JSON.parse(result);
-        } else if(typeof result === "object" && result !== null) {
-            enyo.log("OBJECT: " + result);
-            throw "ERROR [Storage.get]: getItem returned an object. Should be a string.";
-        } else if(typeof result === "undefined" || result === null){
-            //throw "ERROR: [Storage.get]: getItem returned a falsey value. Should be a string.";
-            return result;
-        }
-    },
-
-    /* Remove the item with the key 'name'. */
-    remove: function(name){
-        if(typeof name === "string") {
-            localStorage.removeItem(name);
+    //Wraps the initialization of the IndexedDB Wrapper function
+    wrapper: function (inCallback) {
+        //console.log("isInitialized...", this.isInitialized);
+        if (this.isInitialized) {
+            inCallback(null, db);
         } else {
-            throw "ERROR [Storage.remove]: 'name' was not a String.";
+            var store = sword.dataMgr.getIDBWrapper();
+            var self = this;
+            db = new store({
+                storeName: "biblez",
+                dbVersion: 1,
+                /*indexes: [
+                    {name: "modules", keyPath: "moduleKey", unique: true}
+                ],*/
+                onStoreReady: function() {
+                    //console.log("isInitialized", self.isInitialized);
+                    self.isInitialized = true;
+                    if(inCallback) inCallback(null, db);
+                },
+                onError: function(inError) {
+                    self.isInitialized = false;
+                    if(inCallback) inCallback(inError);
+                }
+            });
         }
     },
 
-    /* Returns length of all localStorage objects. */
-    __getSize: function(){
-        var i, count = 0;
-        for(i = 0; i < localStorage.length; i++){
-            count += localStorage.getItem(localStorage.key()).length;
-        }
-        return count;
+    put: function (inObject, inCallback) {
+        this.wrapper(function (inError, inDB) {
+            inDB.put(inObject,
+                function (inId) {
+                    if(inCallback) inCallback(null, inId);
+                },
+                function (inError) {
+                    if(inCallback) inCallback(inError);
+                }
+            );
+        });
+    },
+
+    get: function (inId, inCallback) {
+        this.wrapper(function (inError, inDB) {
+            inDB.get(inId,
+                function (inObject) {
+                    if(inCallback) inCallback(null, inObject);
+                },
+                function (inError) {
+                    if(inCallback) inCallback(inError);
+                }
+            );
+        });
     }
+
+
 };

@@ -67,4 +67,4 @@ enyo.kind({
 window.screen.onmozorientationchange = function () {
     enyo.Signals.send("onOrientationChange");
 };
-
+enyo.dispatcher.listen(window, "beforeunload");

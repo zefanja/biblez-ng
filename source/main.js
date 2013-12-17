@@ -12,6 +12,7 @@ enyo.kind({
     },
     components:[
         {kind: "Signals", onOrientationChange: "handleOrientation"},
+        {kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {kind: "onyx.MoreToolbar", name: "topTB", components: [
             {kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
@@ -52,11 +53,20 @@ enyo.kind({
     currentPassage: "Matt 1",
     modules: [],
     panelIndex: 2,
+    settings: {id: "settings"},
 
     create: function () {
         this.inherited(arguments);
         this.$.spinner.stop();
-        this.getInstalledModules();
+        api.get("settings", enyo.bind(this, function(inError, inSettings) {
+            //console.log("create", inSettings, this.settings, inError);
+            if(!inError) {
+                this.settings = (inSettings) ? inSettings: this.settings;
+                this.getInstalledModules();
+            } else {
+                this.handleError("Couldn't load settings!");
+            }
+        }));
         this.$.mainPanel.setIndexDirect(2);
     },
 
@@ -82,7 +92,8 @@ enyo.kind({
     renderModuleMenu: function (inModules) {
         if(!inModules)
             inModules = this.modules;
-        var lastModule = api.get("lastModule");
+        if(this.settings)
+            var lastModule = this.settings.lastModule;
         this.$.moduleMenu.destroyClientControls();
         var mods = [];
         this.modules.forEach(enyo.bind(this, function (mod, idx) {
@@ -104,14 +115,20 @@ enyo.kind({
         this.$.moduleMenu.render();
 
         this.doModuleChanged({module: this.currentModule});
+
+        //Load the verses
+        if(this.settings)
+            this.currentPassage = (this.settings.lastRead) ? this.settings.lastRead : this.currentPassage;
         this.handlePassage();
     },
 
     moduleSelected: function (inSender, inEvent) {
-        //console.log(inEvent.originator.index);
+        //console.log(inEvent.originator.index, this.settings);
         if (!isNaN(inEvent.originator.index)) {
             this.currentModule = this.modules[inEvent.originator.index];
-            api.set("lastModule", this.currentModule.modKey);
+            this.settings["lastModule"] = this.currentModule.modKey;
+            console.log(this.settings);
+            this.handleUnload();
             this.renderModuleMenu();
             //this.doModuleChanged({module: this.currentModule});
             //this.handlePassage();
@@ -154,6 +171,12 @@ enyo.kind({
         this.$.spinner.start();
 
         this.currentPassage = (!passage) ? this.currentPassage : passage;
+        console.log(this.currentPassage);
+
+        //Persist current passage
+        this.settings["lastRead"] = this.currentPassage;
+        this.handleUnload();
+
         this.$.btnPassage.setContent(this.currentPassage.replace(".", " "));
         this.currentModule.renderText(this.currentPassage, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
             this.$.spinner.stop();
@@ -188,6 +211,11 @@ enyo.kind({
         else if (orientation === "landscape-primary" || orientation === "landscape-secondary" ) {
             this.$.topTB.hide();
         }
+    },
+
+    handleUnload: function (inSender, inEvent) {
+        console.log("unload", this.settings);
+        api.put(this.settings);
     },
 
     handleError: function (inMessage) {
