@@ -12,16 +12,16 @@ enyo.kind({
     },
     components:[
         {kind: "Signals", onOrientationChange: "handleOrientation"},
-        {kind: "Signals", onbeforeunload: "handleUnload"},
+        //{kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {kind: "onyx.MoreToolbar", name: "topTB", components: [
-            {kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
+            {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/modules.png"},
                 {kind: "onyx.Menu", name: "moduleMenu"}
             ]},
             {kind: "onyx.Button", name: "btnPassage", ontap: "doOpenBC"},
             {fit: true},
-            {kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"}
+            {name: "plus", kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"}
             /*{kind: "onyx.InputDecorator", components: [
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
@@ -42,11 +42,6 @@ enyo.kind({
             ]},
             {},
         ]},
-        /*{kind: "onyx.MoreToolbar", components: [
-            {kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"}
-            //{kind: "onyx.Button", content: "Install ESV", esv: true, ontap: "handleInstallTap"},
-            //{kind: "Input", type: "file", onchange: "handleInstallTap"}
-        ]}*/
     ],
 
     currentModule: null,
@@ -78,10 +73,14 @@ enyo.kind({
         sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
             if (!inError) {
                 if(inModules.length !== 0) {
+                    this.$.moduleSelector.show();
+                    this.$.btnPassage.show();
                     this.modules = inModules;
                     this.renderModuleMenu(this.modules);
                 } else {
-                    this.$.main.setContent($L("You have no modules installed. Tap on the '+' to install one!"));
+                    this.$.moduleSelector.hide();
+                    this.$.btnPassage.hide();
+                    this.$.main.setContent("<center>" + $L("You have no modules installed. Tap on the '+' to install one!" + "</center>"));
                 }
             } else {
                 this.handleError(inError);
@@ -127,37 +126,11 @@ enyo.kind({
         if (!isNaN(inEvent.originator.index)) {
             this.currentModule = this.modules[inEvent.originator.index];
             this.settings["lastModule"] = this.currentModule.modKey;
-            console.log(this.settings);
             this.handleUnload();
             this.renderModuleMenu();
             //this.doModuleChanged({module: this.currentModule});
             //this.handlePassage();
         }
-    },
-
-    handleInstallTap: function (inSender, inEvent) {
-        this.$.spinner.start();
-        self = this;
-        self.$.main.setContent("Installing Module...");
-        var blob = "ESV.zip";
-        if (!inSender.esv)
-            blob = inEvent.target.files[0];
-        sword.installMgr.installModule(blob, function (inError, inId) {
-            //console.log(inError, inId);
-            if(!inError)
-                sword.moduleMgr.getModule(inId, function (inError, inModule) {
-                    //console.log(inError, inModule);
-                    self.currentModule = inModule;
-                    self.$.spinner.stop();
-                    if(!inError) {
-                        self.$.main.setContent(enyo.json.stringify(inModule.config));
-                        self.$.moduleLabel.setContent(inModule.config.moduleKey);
-                    } else
-                        this.handleError(inError);
-                });
-            else
-                this.handleError(inError);
-        });
     },
 
     passageChanged: function (inSender, inEvent) {
@@ -171,7 +144,6 @@ enyo.kind({
         this.$.spinner.start();
 
         this.currentPassage = (!passage) ? this.currentPassage : passage;
-        console.log(this.currentPassage);
 
         //Persist current passage
         this.settings["lastRead"] = this.currentPassage;
@@ -214,7 +186,6 @@ enyo.kind({
     },
 
     handleUnload: function (inSender, inEvent) {
-        console.log("unload", this.settings);
         api.put(this.settings);
     },
 

@@ -3,11 +3,14 @@
 	This way, you can minify your application, and just remove the "source" folder for production
 */
 .background {
-    background: url("../assets/background.png");
+    background: url("../assets/oldPaper.png");
+    background-size: 100%;
+
 }
 
 .nice-padding {
 	padding: 10px;
+    font-size: 1.2em
 }
 
 .app-panels > * {

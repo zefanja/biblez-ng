@@ -9,5 +9,6 @@ enyo.depends(
     "bcSelector.js",
     "main.js",
     "moduleManager.js",
+    "moduleManagerDesktop.js",
 	"App.js"
 );
