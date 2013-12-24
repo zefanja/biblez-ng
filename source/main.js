@@ -12,16 +12,21 @@ enyo.kind({
     },
     components:[
         {kind: "Signals", onOrientationChange: "handleOrientation"},
+        {kind: "biblez.versePopup", name: "versePopup"},
         //{kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {kind: "onyx.MoreToolbar", name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
-                {kind: "onyx.IconButton", src: "assets/modules.png"},
+                //{kind: "onyx.IconButton", src: "assets/modules.png"},
+                {kind: "onyx.Button", name: "btnModules", style: "background-color: #934A15;"},
                 {kind: "onyx.Menu", name: "moduleMenu"}
             ]},
-            {kind: "onyx.Button", name: "btnPassage", ontap: "doOpenBC"},
+            {kind: "onyx.Button", name: "btnPassage", ontap: "handleBcSelector"},
             {fit: true},
-            {name: "plus", kind: "onyx.IconButton", src: "assets/add.png", ontap: "doOpenModuleManager"}
+            {name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
+            {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
+                {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
+            ]}
             /*{kind: "onyx.InputDecorator", components: [
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
@@ -34,7 +39,7 @@ enyo.kind({
             ]},
             {name: "verseScroller", kind: "enyo.Scroller", touch: true, fit: true, components: [
                 {classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
-                {name: "main", classes: "nice-padding", allowHtml: true}
+                {name: "main", classes: "verse-view", allowHtml: true, onclick: "handleVerseTap"}
             ]},
             {kind: "FittableColumns", noStretch: true, components: [
                 {content: "Next >", classes: "chapter-nav chapter-nav-right"},
@@ -98,6 +103,7 @@ enyo.kind({
         this.modules.forEach(enyo.bind(this, function (mod, idx) {
             if ((lastModule && lastModule === mod.modKey)) {
                 //mods.push({content: mod.config.moduleKey, index: idx, active: true, style: "background-color: lightblue"});
+                this.$.btnModules.setContent(lastModule);
                 mods.push({active: true, components: [
                     {content: mod.config.moduleKey, index: idx},
                     {kind: "onyx.IconButton", src: "assets/checkmark.png", style: "float: right;"}
@@ -109,11 +115,14 @@ enyo.kind({
         if(this.currentModule === null) {
             this.currentModule = this.modules[0];
             mods[0]["active"] = true;
+            this.$.btnModules.setContent(this.currentModule.modKey);
         }
         this.$.moduleMenu.createComponents(mods, {owner: this.$.moduleMenu});
         this.$.moduleMenu.render();
 
         this.doModuleChanged({module: this.currentModule});
+        if(enyo.platform.firefox)
+            this.$.bcSelector.setModule(this.currentModule);
 
         //Load the verses
         if(this.settings)
@@ -128,12 +137,11 @@ enyo.kind({
             this.settings["lastModule"] = this.currentModule.modKey;
             this.handleUnload();
             this.renderModuleMenu();
-            //this.doModuleChanged({module: this.currentModule});
-            //this.handlePassage();
         }
     },
 
     passageChanged: function (inSender, inEvent) {
+        this.$.bcPopup.hide();
         this.currentPassage = inEvent.book.abbrev + " " + inEvent.chapter;
         this.handlePassage(inEvent.osis);
     },
@@ -150,7 +158,7 @@ enyo.kind({
         this.handleUnload();
 
         this.$.btnPassage.setContent(this.currentPassage.replace(".", " "));
-        this.currentModule.renderText(this.currentPassage, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
+        this.currentModule.renderText(this.currentPassage, {oneVersePerLine: false}, enyo.bind(this, function (inError, inText) {
             this.$.spinner.stop();
             if(!inError) {
                 this.$.verseScroller.scrollToTop();
@@ -158,6 +166,18 @@ enyo.kind({
             } else
                 this.handleError(inError.message);
         }));
+    },
+
+    handleBcSelector: function (inSender, inEvent) {
+        if(enyo.platform.firefox) {
+            this.$.bcPopup.showAtEvent(inEvent);
+            this.$.bcSelector.setPanel(0);
+        } else
+            this.doOpenBC();
+    },
+
+    closePopup: function (inSender, inEvent) {
+        this.$.bcPopup.hide();
     },
 
     handleChangeChapter: function (inSender, inEvent) {
@@ -169,6 +189,24 @@ enyo.kind({
             }
         }
         this.$.mainPanel.setIndexDirect(2);
+    },
+
+    handleVerseTap: function (inSender, inEvent) {
+        inEvent.preventDefault();
+        var attributes = {};
+        if(inEvent.target.href) {
+            var url = inEvent.target.href;
+            url.split("?")[1].split("&").forEach(function(item) {
+                item = item.split("=");
+                attributes[item[0]] = item[1];
+            });
+        }
+        if(attributes.type === "verseNum") {
+            console.log(attributes.osisRef);
+            this.$.versePopup.showAtEvent(inEvent);
+        }
+
+        return true;
     },
 
     handlePanelIndex: function (inSender, inEvent) {

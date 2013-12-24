@@ -5,6 +5,7 @@ enyo.kind({
         onSelect: "",
         onBack: ""
     },
+    classes: "enyo-fit",
     published: {
         module: null
     },
@@ -44,7 +45,7 @@ enyo.kind({
     },
 
     handleBack: function (inSender, inEvent) {
-        this.$.bcPanel.setIndex(0)
+        this.$.bcPanel.setIndex(0);
     },
 
     moduleChanged: function (inSender, inEvent) {
