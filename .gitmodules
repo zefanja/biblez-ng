@@ -1,0 +1,12 @@
+[submodule "enyo"]
+	path = enyo
+	url = ../../enyojs/enyo.git
+[submodule "lib/onyx"]
+	path = lib/onyx
+	url = ../../enyojs/onyx.git
+[submodule "lib/layout"]
+	path = lib/layout
+	url = ../../enyojs/layout.git
+[submodule "lib/sword"]
+	path = lib/sword
+	url = https://github.com/zefanja/swordjs.git
