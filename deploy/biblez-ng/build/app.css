@@ -1757,11 +1757,6 @@
 
 }
 
-.nice-padding {
-	padding: 10px;
-    font-size: 1.2em
-}
-
 .app-panels > * {
     width: 320px;
     background-color: #EAEAEA;
@@ -1778,8 +1773,17 @@
 }
 
 /* MAIN VIEW */
+.verse-view {
+    padding: 10px;
+    font-size: 1.2em
+}
+
 .module-picker {
     width: 45px;
+}
+
+.modules-button {
+    background-color: #934A15;
 }
 
 .center {
@@ -1805,6 +1809,11 @@
     margin-left: 10px;
 }
 
+.biblez-bc-popup {
+    height: 350px;
+    width: 420px;
+}
+
 /* MODULE MANAGER */
 
 .item {
@@ -1823,6 +1832,10 @@
 .title {
     font-weight: bold;
     font-size: 1.2em;
+    padding: 10px;
+}
+
+.nice-padding {
     padding: 10px;
 }
 
@@ -1845,9 +1858,39 @@
     padding: 10px;
 }
 
+.verse-popup {
+
+}
+
+.verse-popup-cell {
+    width: 100px;
+    text-align: center;
+    padding: 5px;
+}
+
+.cell-bottom-right {
+    border-left: 1px solid;
+    border-color: gray;
+}
+
+.cell-top-right {
+    border-bottom: 1px solid;
+    border-left: 1px solid;
+    border-color: gray;
+}
+
+.cell-top-left {
+    border-bottom: 1px solid;
+    border-color: gray;
+}
+
 /* BIBLE TEXT STYLE */
 .verse-number {
     font-weight: bold;
+    font-size: 1.3em;
+    line-height: 1em;
+    text-decoration: none;
+    color: #010101;
 }
 
 h3, h1 {
