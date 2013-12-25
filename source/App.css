@@ -61,8 +61,8 @@
 }
 
 .biblez-bc-popup {
-    height: 350px;
-    width: 420px;
+    height: 500px;
+    width: 495px;
 }
 
 /* MODULE MANAGER */
@@ -93,14 +93,22 @@
 /* BOOK CHAPTER SELECTOR */
 .bc-item {
     height: 30px;
-    width: 50px;
-    margin: 5px;
-    border: 1px solid #ccc;
-    padding: 10px 5px 5px 5px;
+    width: 45px;
+    margin: 3px;
+    /* border: 1px solid #ccc; */
+    padding: 5px 5px 5px 5px;
     float: left;
-    vertical-align: middle;
+    line-height: 30px;
     text-align: center;
     font-weight: bold;
+}
+
+.books-ot {
+    background-color: #DAA520;
+}
+
+.books-nt {
+    background-color: #F0E68C;
 }
 
 /* POPUPs */
@@ -138,10 +146,18 @@
 /* BIBLE TEXT STYLE */
 .verse-number {
     font-weight: bold;
-    font-size: 1.3em;
-    line-height: 1em;
     text-decoration: none;
     color: #010101;
+}
+
+@media all and (max-width: 800px) {
+    .verse-number {
+        font-weight: bold;
+        font-size: 1.3em;
+        line-height: 1em;
+        text-decoration: none;
+        color: #010101;
+    }
 }
 
 h3, h1 {

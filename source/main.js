@@ -171,7 +171,7 @@ enyo.kind({
     handleBcSelector: function (inSender, inEvent) {
         if(enyo.platform.firefox) {
             this.$.bcPopup.showAtEvent(inEvent);
-            this.$.bcSelector.setPanel(0);
+            //this.$.bcSelector.setPanel(0);
         } else
             this.doOpenBC();
     },
@@ -202,7 +202,7 @@ enyo.kind({
             });
         }
         if(attributes.type === "verseNum") {
-            console.log(attributes.osisRef);
+            this.$.versePopup.setOsisRef(attributes.osisRef);
             this.$.versePopup.showAtEvent(inEvent);
         }
 

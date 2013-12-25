@@ -18,7 +18,7 @@ enyo.kind({
                 ]},
                 {kind: "enyo.Scroller", fit: true, touch: true, components: [
                     {name: "bookRepeater", kind: "Repeater", count: 0, onSetupItem: "setBookItems", components: [
-                        {name: "bookItem", classes: "bc-item", ontap: "handleBook"}
+                        {name: "bookItem", classes: "bc-item onyx-button", ontap: "handleBook"}
                     ]}
                 ]}
             ]},
@@ -29,7 +29,7 @@ enyo.kind({
                 ]},
                 {kind: "enyo.Scroller", fit: true, touch: true, components: [
                     {name: "chapterRepeater", kind: "Repeater", count: 0, onSetupItem: "setChapterItems", components: [
-                        {name: "chapterItem", classes: "bc-item", ontap: "handleChapter"}
+                        {name: "chapterItem", classes: "bc-item onyx-button", ontap: "handleChapter"}
                     ]}
                 ]}
             ]}
@@ -54,6 +54,14 @@ enyo.kind({
     },
 
     setBookItems: function (inSender, inEvent) {
+        if (inEvent.index === 39) {
+            inEvent.item.$.bookItem.addStyles("clear: both;");
+        }
+        if (inEvent.index >= 39) {
+            inEvent.item.$.bookItem.addClass("books-nt");
+        } else {
+            inEvent.item.$.bookItem.addClass("books-ot");
+        }
         inEvent.item.$.bookItem.setContent(this.books[inEvent.index].abbrev.slice(0,4));
     },
 
@@ -69,5 +77,6 @@ enyo.kind({
 
     handleChapter: function (inSender, inEvent) {
         this.doSelect({book: this.currentBook, chapter: inEvent.index+1, osis: this.currentBook.abbrev + "." + (inEvent.index+1)});
+        this.$.bcPanel.setIndex(0);
     }
 });
