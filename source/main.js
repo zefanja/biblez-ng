@@ -50,7 +50,10 @@ enyo.kind({
     ],
 
     currentModule: null,
-    currentPassage: "Matt 1",
+    currentPassage: {
+        osis: "Matt.1",
+        label: "Matt 1"
+    },
     modules: [],
     panelIndex: 2,
     settings: {id: "settings"},
@@ -142,23 +145,27 @@ enyo.kind({
 
     passageChanged: function (inSender, inEvent) {
         this.$.bcPopup.hide();
-        this.currentPassage = inEvent.book.abbrev + " " + inEvent.chapter;
-        this.handlePassage(inEvent.osis);
+        this.currentPassage.osis = inEvent.osis;
+        this.currentPassage.label = inEvent.label;
+        this.handlePassage();
     },
 
     handlePassage: function (passage) {
-        //console.log("PASSAGE", inSender.getValue());
+        //console.log("PASSAGE", passage, this.currentPassage);
         this.$.main.setContent("");
         this.$.spinner.start();
 
-        this.currentPassage = (!passage) ? this.currentPassage : passage;
+        if (typeof passage === "string") {
+            this.currentPassage.osis = passage.replace(" ", ".");
+            this.currentPassage.label = passage.replace(".", " ");
+        }
 
         //Persist current passage
         this.settings["lastRead"] = this.currentPassage;
         this.handleUnload();
 
-        this.$.btnPassage.setContent(this.currentPassage.replace(".", " "));
-        this.currentModule.renderText(this.currentPassage, {oneVersePerLine: false}, enyo.bind(this, function (inError, inText) {
+        this.$.btnPassage.setContent(this.currentPassage.label);
+        this.currentModule.renderText(this.currentPassage.osis, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
             this.$.spinner.stop();
             if(!inError) {
                 this.$.verseScroller.scrollToTop();
@@ -166,6 +173,19 @@ enyo.kind({
             } else
                 this.handleError(inError.message);
         }));
+        this.handleBookmarks(this.currentPassage.osis);
+        //console.log();
+        /*api.getAll(function (inError, inAll) {
+            console.log(inAll);
+        });
+        api.getAllBookmarks(function (inError, inBookmarks) {
+            console.log(inBookmarks);
+        });*/
+    },
+
+    handleBookmarks: function (inOsis) {
+        this.currentModule.getVersesInChapter(inOsis);
+
     },
 
     handleBcSelector: function (inSender, inEvent) {
@@ -183,9 +203,9 @@ enyo.kind({
     handleChangeChapter: function (inSender, inEvent) {
         if(this.currentModule) {
             if(this.panelIndex === 1) {
-                this.handlePassage(sword.verseKey.previous(this.currentPassage, this.currentModule.config.Versification).osis);
+                this.handlePassage(sword.verseKey.previous(this.currentPassage.osis, this.currentModule.config.Versification).osis);
             } else if(this.panelIndex === 3) {
-                this.handlePassage(sword.verseKey.next(this.currentPassage, this.currentModule.config.Versification).osis);
+                this.handlePassage(sword.verseKey.next(this.currentPassage.osis, this.currentModule.config.Versification).osis);
             }
         }
         this.$.mainPanel.setIndexDirect(2);

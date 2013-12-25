@@ -19,6 +19,12 @@ enyo.kind({
     ],
 
     handleBookmark: function (inSender, inEvent) {
-        console.log(this.osisRef);
+        this.hide();
+        api.putBookmark({osisRef: this.osisRef}, function (inError, inId) {
+            if(!inError) {
+                console.log("Added Bookmark");
+            } else
+                console.log(inError);
+        });
     }
 });

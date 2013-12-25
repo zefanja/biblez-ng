@@ -78,7 +78,21 @@ var api = {
 
     putBookmark: function (inObject, inCallback) {
         this.bmWrapper(enyo.bind(this, function (inError, inDB) {
-            if(!inError) this._put(inDB, inObject, inCallback);
+            if(!inError)
+                this._put(inDB, inObject, enyo.bind(this, function(inError, inId) {
+                    if(!inError)
+                        this.get(inObject.osisRef, enyo.bind(this, function(inError, inOsisObject) {
+                            if(!inError) {
+                                if(inOsisObject === undefined)
+                                    inOsisObject = {id: inObject.osisRef};
+                                inOsisObject["bookmarkId"] = inId;
+                                this.put(inOsisObject, inCallback);
+                            } else
+                                inCallback(inError);
+                        }));
+                    else
+                        inCallback(inError);
+                }));
             else inCallback(inError);
         }));
     },
@@ -112,6 +126,13 @@ var api = {
         }));
     },
 
+    getAll: function(inCallback) {
+        this.wrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError) this._getAll(inDB, inCallback);
+            else inCallback(inError);
+        }));
+    },
+
     getBookmark: function (inId, inCallback) {
         this.bmWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._get(inDB, inId, inCallback);
@@ -121,7 +142,7 @@ var api = {
 
     getAllBookmarks: function (inCallback) {
         this.bmWrapper(enyo.bind(this, function (inError, inDB) {
-            if(!inError) this._getAll(inDB, inId, inCallback);
+            if(!inError) this._getAll(inDB, inCallback);
             else inCallback(inError);
         }));
     }
