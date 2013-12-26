@@ -166,22 +166,15 @@ enyo.kind({
         this.handleUnload();
 
         this.$.btnPassage.setContent(this.currentPassage.label);
-        this.currentModule.renderText(this.currentPassage.osis, {oneVersePerLine: true}, enyo.bind(this, function (inError, inText) {
+        this.currentModule.renderText(this.currentPassage.osis, {oneVersePerLine: false}, enyo.bind(this, function (inError, inText) {
             this.$.spinner.stop();
             if(!inError) {
                 this.$.verseScroller.scrollToTop();
                 this.$.main.setContent(inText);
+                this.handleUserData(this.currentPassage.osis);
             } else
                 this.handleError(inError.message);
         }));
-        this.handleUserData(this.currentPassage.osis);
-        //console.log();
-        /*api.getAll(function (inError, inAll) {
-            console.log(inAll);
-        });
-        api.getAllBookmarks(function (inError, inBookmarks) {
-            console.log(inBookmarks);
-        });*/
     },
 
     handleUserData: function (inOsis) {
@@ -190,7 +183,7 @@ enyo.kind({
             if(!inError) {
                 this.userData = inUserData;
                 Object.keys(inUserData).forEach(function (key) {
-                    if(inUserData[key].bookmarkId) {
+                    if(inUserData[key].bookmarkId && !enyo.dom.byId("img"+key)) {
                         enyo.dom.byId(key).insertAdjacentHTML("beforeend", " <img id='img" + key + "' src='assets/bookmark.png' />");
                     }
                 });
