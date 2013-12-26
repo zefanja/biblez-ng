@@ -145,7 +145,55 @@ var api = {
             if(!inError) this._getAll(inDB, inCallback);
             else inCallback(inError);
         }));
-    }
+    },
 
+    getUserData: function(inOsis, inVMax, inCallback) {
+        var z=1,
+            userData = {};
+        inOsis = (inOsis.split(".").length === 2) ? inOsis : inOsis.split(".")[0] + "." + inOsis.split(".")[1];
+        for (var i=1;i<inVMax+1;i++) {
+            this.get(inOsis + "." + i, function (inError, inData) {
+                if(!inError) {
+                    if(inData && inData.bookmarkId)
+                        userData[inData.id] = inData;
+                    if(z === inVMax) inCallback(null, userData);
+                    else z++;
+                } else
+                    inCallback(inError);
+            });
+        }
+    },
 
+    _remove: function (inDB, inId, inCallback) {
+        inDB.remove(inId,
+            function () {
+                if(inCallback) inCallback(null);
+            },
+            function (inError) {
+                if(inCallback) inCallback(inError);
+            }
+        );
+    },
+
+    removeBookmark: function (inBookmark, inCallback) {
+        this.bmWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError)
+                this._remove(inDB, inBookmark.id, enyo.bind(this, function(inError) {
+                    if(!inError)
+                        this.get(inBookmark.osisRef, enyo.bind(this, function(inError, inOsisObject) {
+                            if(!inError) {
+                                if(inOsisObject !== undefined) {
+                                    delete inOsisObject["bookmarkId"];
+                                    this.put(inOsisObject, inCallback);
+                                } else
+                                    inCallback({message: "api.removeBookmark: Couldn't remove bookmarkId from osisObject"});
+                            } else
+                                inCallback(inError);
+                        }));
+                    else
+                        inCallback(inError);
+                }));
+            else inCallback(inError);
+        }));
+    },
 };

@@ -12,7 +12,7 @@ enyo.kind({
     },
     components:[
         {kind: "Signals", onOrientationChange: "handleOrientation"},
-        {kind: "biblez.versePopup", name: "versePopup"},
+        {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark"},
         //{kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {kind: "onyx.MoreToolbar", name: "topTB", components: [
@@ -54,6 +54,7 @@ enyo.kind({
         osis: "Matt.1",
         label: "Matt 1"
     },
+    userData: {},
     modules: [],
     panelIndex: 2,
     settings: {id: "settings"},
@@ -173,7 +174,7 @@ enyo.kind({
             } else
                 this.handleError(inError.message);
         }));
-        this.handleBookmarks(this.currentPassage.osis);
+        this.handleUserData(this.currentPassage.osis);
         //console.log();
         /*api.getAll(function (inError, inAll) {
             console.log(inAll);
@@ -183,9 +184,27 @@ enyo.kind({
         });*/
     },
 
-    handleBookmarks: function (inOsis) {
-        this.currentModule.getVersesInChapter(inOsis);
+    handleUserData: function (inOsis) {
+        var vmax = this.currentModule.getVersesInChapter(inOsis);
+        api.getUserData(inOsis, vmax, enyo.bind(this, function (inError, inUserData) {
+            if(!inError) {
+                this.userData = inUserData;
+                Object.keys(inUserData).forEach(function (key) {
+                    if(inUserData[key].bookmarkId) {
+                        enyo.dom.byId(key).insertAdjacentHTML("beforeend", " <img id='img" + key + "' src='assets/bookmark.png' />");
+                    }
+                });
+            }
+        }));
 
+    },
+
+    handleBookmark: function (inSender, inEvent) {
+        if(inEvent.action === "remove") {
+            var oldBmImg = enyo.dom.byId("img"+inEvent.osisRef);
+            oldBmImg.parentNode.removeChild(oldBmImg);
+        }
+        this.handleUserData(this.currentPassage.osis);
     },
 
     handleBcSelector: function (inSender, inEvent) {
@@ -223,9 +242,19 @@ enyo.kind({
         }
         if(attributes.type === "verseNum") {
             this.$.versePopup.setOsisRef(attributes.osisRef);
+            if(this.userData.hasOwnProperty(attributes.osisRef))
+                if (this.userData[attributes.osisRef].bookmarkId) {
+                    this.$.versePopup.setBmExists(true);
+                    this.$.versePopup.setBmId(this.userData[attributes.osisRef].bookmarkId);
+                } else
+                    this.$.versePopup.setBmExists(false);
+            else {
+                this.$.versePopup.setBmExists(false);
+                this.$.versePopup.setNoteExists(false);
+            }
+            this.$.versePopup.setLabels();
             this.$.versePopup.showAtEvent(inEvent);
         }
-
         return true;
     },
 
