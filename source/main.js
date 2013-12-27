@@ -4,6 +4,7 @@ enyo.kind({
     fit: true,
     events: {
         onOpenModuleManager: "",
+        onOpenPreferences: "",
         onModuleChanged: "",
         onOpenBC: ""
     },
@@ -22,8 +23,27 @@ enyo.kind({
                 {kind: "onyx.Menu", name: "moduleMenu"}
             ]},
             {kind: "onyx.Button", name: "btnPassage", ontap: "handleBcSelector"},
-            {fit: true},
-            {name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
+            //{fit: true},
+            {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
+                {kind: "onyx.IconButton", src: "assets/menu.png"},
+                {kind: "onyx.Menu", name: "actionMenu", style: "width: 200px;", components: [
+                    {action: "moduleManager", components: [
+                        {kind: "onyx.IconButton", src: "assets/add.png"},
+                        {content: $L("Module Manager")}
+                    ]},
+                    {action: "preferences", components: [
+                        {kind: "onyx.IconButton", src: "assets/settings.png"},
+                        {content: $L("Preferences")}
+                    ]},
+                    {action: "bookmarks", components: [
+                        {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
+                        {content: $L("Bookmarks")}
+                    ]}
+
+                ]}
+            ]},
+            //{name: "btnPrefs", kind:"onyx.IconButton", src: "assets/settings.png", ontap: "handlePrefs"},
+            //{name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
             {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
                 {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
             ]}
@@ -76,6 +96,18 @@ enyo.kind({
 
     rendered: function () {
         this.inherited(arguments);
+    },
+
+    handleSettings: function (inSender, inEvent) {
+        api.get("settings", enyo.bind(this, function(inError, inSettings) {
+            if(!inError) {
+                this.settings = (inSettings) ? inSettings: this.settings;
+                if(inEvent.setting === "linebreak")
+                    this.handlePassage();
+            } else {
+                this.handleError("Couldn't load settings!");
+            }
+        }));
     },
 
     getInstalledModules: function (inSender, inEvent) {
@@ -166,7 +198,7 @@ enyo.kind({
         this.handleUnload();
 
         this.$.btnPassage.setContent(this.currentPassage.label);
-        this.currentModule.renderText(this.currentPassage.osis, {oneVersePerLine: false}, enyo.bind(this, function (inError, inText) {
+        this.currentModule.renderText(this.currentPassage.osis, {oneVersePerLine: this.settings.linebreak ? this.settings.linebreak : false}, enyo.bind(this, function (inError, inText) {
             this.$.spinner.stop();
             if(!inError) {
                 this.$.verseScroller.scrollToTop();
@@ -249,6 +281,14 @@ enyo.kind({
             this.$.versePopup.showAtEvent(inEvent);
         }
         return true;
+    },
+
+    /*Action Menu*/
+    actionSelected: function (inSender, inEvent) {
+        if(inEvent.originator.action === "moduleManager")
+            this.doOpenModuleManager();
+        else if(inEvent.originator.action === "preferences")
+            this.doOpenPreferences();
     },
 
     handlePanelIndex: function (inSender, inEvent) {

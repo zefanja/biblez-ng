@@ -11,11 +11,11 @@ enyo.kind({
     fit: true,
     components: [
         {name: "panel", kind: "Panels", fit: true, classes: "app-panels", arrangerKind: "CardArranger", draggable: false, onTransitionFinish: "handlePanels", components: [
-            {name: "main", kind: "biblez.main", onOpenModuleManager: "openModuleManager", onOpenBC: "openSelector", onModuleChanged: "handleChangeModule"},
+            {name: "main", kind: "biblez.main", onOpenModuleManager: "openModuleManager", onOpenBC: "openSelector", onModuleChanged: "handleChangeModule", onOpenPreferences: "openPreferences"},
             {name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "bcSelector", kind: "biblez.bcSelector", onSelect: "handlePassageSelect", onBack: "handleBack"},
-            {name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"}
-            //{name: "settings"}
+            {name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"},
+            {name: "settings", kind: "biblez.settings", onBack: "handleBack", onChange: "handleSettings"}
         ]}
     ],
 
@@ -54,6 +54,15 @@ enyo.kind({
         this.$.panel.setIndex(2);
         this.$.bcSelector.setPanel(0);
         return true;
+    },
+
+    openPreferences: function (inSender, inEvent) {
+        this.$.settings.setSettings();
+        this.$.panel.setIndex(4);
+    },
+
+    handleSettings: function (inSender, inEvent) {
+        this.$.main.handleSettings(inSender, inEvent);
     },
 
     handleChangeModule: function (inSender, inEvent) {

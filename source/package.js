@@ -11,5 +11,6 @@ enyo.depends(
     "moduleManager.js",
     "moduleManagerDesktop.js",
     "popup.js",
+    "settings.js",
 	"App.js"
 );

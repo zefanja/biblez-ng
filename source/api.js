@@ -196,4 +196,15 @@ var api = {
             else inCallback(inError);
         }));
     },
+
+    putSetting: function (inKey, inValue, inCallback) {
+        this.get("settings", enyo.bind(this, function (inError, inSettings) {
+            if(!inError) {
+                inSettings[inKey] = inValue;
+                this.put(inSettings, inCallback);
+            } else {
+                inCallback(inError);
+            }
+        }));
+    }
 };
