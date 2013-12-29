@@ -21,9 +21,15 @@ enyo.kind({
                 {name: "bmLabel", content: $L("Bookmark"), classes: "verse-popup-cell cell-top-left", ontap: "handleBookmark"},
                 {name: "noteLabel", content: $L("Note"), classes: "verse-popup-cell cell-top-right", ontap: "handleNote"},
             ]},
-            {kind: "enyo.FittableColumns", components: [
-                {content: $L("Highlight"), classes: "verse-popup-cell", ontap: "handleHighlight"},
-                {content: $L("Copy&Share"), classes: "verse-popup-cell cell-bottom-right", ontap: "handleCopyShare"},
+            {kind: "enyo.FittableColumns", classes: "color-container", components: [
+                {kind: "onyx.Button", content: " ", ontap: "highlightVerse", classes: "color-button", color: "rgba(255,99,71,0.5)", style: "background-color: red;"},
+                {kind: "onyx.Button", content: " ", ontap: "highlightVerse", classes: "color-button", color: "rgba(255,255,0,0.5)", style: "background-color: yellow;"},
+                {kind: "onyx.Button", content: " ", ontap: "highlightVerse", classes: "color-button", color: "rgba(152,251,152,0.5)", style: "background-color: green;"},
+                {kind: "onyx.Button", content: " ", ontap: "highlightVerse", classes: "color-button", color: "rgba(238,130,238,0.5)", style: "background-color: violet;"},
+                {kind: "onyx.Button", caption: " ", ontap: "highlightVerse", classes: "color-button", color: "rgba(255,165,0,0.5)", style: "background-color: orange;"},
+                {kind: "onyx.IconButton", src: "assets/delete.png", ontap: "highlightVerse"}
+                //{content: $L("Highlight"), classes: "verse-popup-cell", ontap: "handleHighlight"},
+                //{content: $L("Copy&Share"), classes: "verse-popup-cell cell-bottom-right", ontap: "handleCopyShare"},
             ]}
         ]}
     ],
@@ -51,5 +57,16 @@ enyo.kind({
                 } else
                     console.log(inError);
             }));
+    },
+
+    highlightVerse: function (inSender, inEvent) {
+        this.hide();
+        api.putHighlight({osisRef: this.osisRef, color: inSender.color}, enyo.bind(this, function (inError, inId) {
+            if(!inError)
+                this.doHighlight();
+            else
+                console.log(inError);
+        }));
+
     }
 });

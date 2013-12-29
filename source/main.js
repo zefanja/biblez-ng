@@ -13,7 +13,7 @@ enyo.kind({
     },
     components:[
         {kind: "Signals", onOrientationChange: "handleOrientation"},
-        {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark"},
+        {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark", onHighlight: "handleHighlight"},
         //{kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {kind: "onyx.MoreToolbar", name: "topTB", components: [
@@ -210,7 +210,8 @@ enyo.kind({
     },
 
     handleUserData: function (inOsis) {
-        var vmax = this.currentModule.getVersesInChapter(inOsis);
+        var vmax = this.currentModule.getVersesInChapter(inOsis),
+            hlKeys = [];
         api.getUserData(inOsis, vmax, enyo.bind(this, function (inError, inUserData) {
             if(!inError) {
                 this.userData = inUserData;
@@ -218,7 +219,18 @@ enyo.kind({
                     if(inUserData[key].bookmarkId && !enyo.dom.byId("img"+key)) {
                         enyo.dom.byId(key).insertAdjacentHTML("beforeend", " <img id='img" + key + "' src='assets/bookmark.png' />");
                     }
+                    if(inUserData[key].highlightId) {
+                        hlKeys.push(inUserData[key].highlightId);
+                    }
                 });
+                if (hlKeys.length !== 0) {
+                    api.getHighlights(hlKeys, enyo.bind(this, function (inError, inHighlights) {
+                        if(!inError) {
+                            console.log(inHighlights);
+                        } else
+                            this.handleError(inError);
+                    }));
+                }
             }
         }));
 
@@ -229,6 +241,11 @@ enyo.kind({
             var oldBmImg = enyo.dom.byId("img"+inEvent.osisRef);
             oldBmImg.parentNode.removeChild(oldBmImg);
         }
+        this.handleUserData(this.currentPassage.osis);
+    },
+
+    handleHighlight: function (inSender, inEvent) {
+        console.log("Added Highlight");
         this.handleUserData(this.currentPassage.osis);
     },
 

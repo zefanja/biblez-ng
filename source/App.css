@@ -61,7 +61,7 @@
 }
 
 .biblez-bc-popup {
-    height: 500px;
+    height: 480px;
     width: 495px;
 }
 
@@ -117,12 +117,24 @@
     padding: 10px;
 }
 
-.verse-popup {
+.color-button {
+    height: 30px;
+    width: 30px;
+    margin: 2px;
+}
 
+.color-container {
+    height: 40px;
+    padding-top: 5px;
+}
+
+.verse-popup {
+    height: 85px;
+    width: 255px;
 }
 
 .verse-popup-cell {
-    width: 100px;
+    width: 50%;
     text-align: center;
     padding: 5px;
 }
@@ -169,7 +181,7 @@ h3, h1 {
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 10px;
+    padding: 10px;
 }
 
 .settings-item {

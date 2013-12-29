@@ -7,22 +7,22 @@ var api = {
     noteStore: null,
     isHlInitialized: false,
     hlStore: null,
+    store: sword.dataMgr.getIDBWrapper(),
 
     //Wraps the initialization of the IndexedDB Wrapper function
     wrapper: function (inCallback) {
         //console.log("isInitialized...", this.isInitialized);
         if (this.isInitialized) {
-            inCallback(null, db);
+            inCallback(null, this.db);
         } else {
-            var store = sword.dataMgr.getIDBWrapper();
             var self = this;
-            db = new store({
+            this.db = new this.store({
                 storeName: "biblez",
                 dbVersion: 3,
                 onStoreReady: function() {
                     //console.log("isInitialized", self.isInitialized);
                     self.isInitialized = true;
-                    if(inCallback) inCallback(null, db);
+                    if(inCallback) inCallback(null, self.db);
                 },
                 onError: function(inError) {
                     self.isInitialized = false;
@@ -35,11 +35,10 @@ var api = {
     bmWrapper: function (inCallback) {
         //console.log("isInitialized...", this.isInitialized);
         if (this.isBmInitialized) {
-            inCallback(null, bmStore);
+            inCallback(null, this.bmStore);
         } else {
-            var store = sword.dataMgr.getIDBWrapper();
             var self = this;
-            bmStore = new store({
+            this.bmStore = new this.store({
                 storeName: "bookmarks",
                 keyPath: 'id',
                 autoIncrement: true,
@@ -47,7 +46,7 @@ var api = {
                 onStoreReady: function() {
                     //console.log("isInitialized", self.isInitialized);
                     self.isBmInitialized = true;
-                    if(inCallback) inCallback(null, bmStore);
+                    if(inCallback) inCallback(null, self.bmStore);
                 },
                 onError: function(inError) {
                     self.isBmInitialized = false;
@@ -57,8 +56,32 @@ var api = {
         }
     },
 
+    hlWrapper: function (inCallback) {
+        //console.log("isInitialized...", this.isHlInitialized);
+        if (this.isHlInitialized) {
+            inCallback(null, this.hlStore);
+        } else {
+            var self = this;
+            this.hlStore = new this.store({
+                storeName: "highlights",
+                keyPath: 'id',
+                autoIncrement: true,
+                dbVersion: 1,
+                onStoreReady: function() {
+                    self.isHlInitialized = true;
+                    if(inCallback) inCallback(null, self.hlStore);
+                },
+                onError: function(inError) {
+                    self.isHlInitialized = false;
+                    if(inCallback) inCallback(inError);
+                }
+            });
+        }
+    },
+
     //Put something in the ObjectStores
     _put: function (inDB, inObject, inCallback) {
+        //console.log("Put this:", inDB, inObject);
         inDB.put(inObject,
             function (inId) {
                 if(inCallback) inCallback(null, inId);
@@ -97,8 +120,40 @@ var api = {
         }));
     },
 
+    putHighlight: function (inObject, inCallback) {
+        this.hlWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError)
+                this._put(inDB, inObject, enyo.bind(this, function(inError, inId) {
+                    if(!inError)
+                        this.get(inObject.osisRef, enyo.bind(this, function(inError, inOsisObject) {
+                            if(!inError) {
+                                if(inOsisObject === undefined)
+                                    inOsisObject = {id: inObject.osisRef};
+                                inOsisObject["highlightId"] = inId;
+                                this.put(inOsisObject, inCallback);
+                            } else
+                                inCallback(inError);
+                        }));
+                    else
+                        inCallback(inError);
+                }));
+            else inCallback(inError);
+        }));
+    },
+
     _get: function (inDB, inId, inCallback) {
         inDB.get(inId,
+            function (inObject) {
+                if(inCallback) inCallback(null, inObject);
+            },
+            function (inError) {
+                if(inCallback) inCallback(inError);
+            }
+        );
+    },
+
+    _getBatch: function (inDB, inIds, inCallback) {
+        inDB.getBatch(inIds,
             function (inObject) {
                 if(inCallback) inCallback(null, inObject);
             },
@@ -147,6 +202,13 @@ var api = {
         }));
     },
 
+    getHighlights: function (inIds, inCallback) {
+        this.hlWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError) this._getBatch(inDB, inIds, inCallback);
+            else inCallback(inError);
+        }));
+    },
+
     getUserData: function(inOsis, inVMax, inCallback) {
         var z=1,
             userData = {};
@@ -155,6 +217,8 @@ var api = {
             this.get(inOsis + "." + i, function (inError, inData) {
                 if(!inError) {
                     if(inData && inData.bookmarkId)
+                        userData[inData.id] = inData;
+                    if(inData && inData.highlightId)
                         userData[inData.id] = inData;
                     if(z === inVMax) inCallback(null, userData);
                     else z++;
