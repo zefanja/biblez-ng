@@ -1775,7 +1775,7 @@
 /* MAIN VIEW */
 .verse-view {
     padding: 10px;
-    font-size: 1.2em
+    font-size: 1.2em;
 }
 
 .module-picker {
@@ -1810,7 +1810,7 @@
 }
 
 .biblez-bc-popup {
-    height: 500px;
+    height: 480px;
     width: 495px;
 }
 
@@ -1866,12 +1866,24 @@
     padding: 10px;
 }
 
-.verse-popup {
+.color-button {
+    height: 30px;
+    width: 30px;
+    margin: 2px;
+}
 
+.color-container {
+    height: 40px;
+    padding-top: 5px;
+}
+
+.verse-popup {
+    height: 85px;
+    width: 255px;
 }
 
 .verse-popup-cell {
-    width: 100px;
+    width: 50%;
     text-align: center;
     padding: 5px;
 }
@@ -1902,8 +1914,8 @@
 @media all and (max-width: 800px) {
     .verse-number {
         font-weight: bold;
-        font-size: 1.3em;
-        line-height: 1em;
+        font-size: 1.2em;
+        line-height: .9em;
         text-decoration: none;
         color: #010101;
     }
@@ -1913,12 +1925,26 @@ h3, h1 {
     font-size: 1.3em;
 }
 
+/* FONT MENU */
+.font-selector {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.font-slider {
+    margin: 8px 5px;
+}
+
+.font-popup {
+    width: 200px;
+}
+
 /* SETTINGS */
 .settings-container {
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 10px;
+    padding: 10px;
 }
 
 .settings-item {
@@ -1927,4 +1953,9 @@ h3, h1 {
 
 .settings-row {
     padding: 5px;
+}
+
+/* OVERRIDE SOME ONYX SETTINGS */
+.onyx-toolbar {
+    padding: 2px 5px;
 }
