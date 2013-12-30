@@ -292,5 +292,17 @@ var api = {
                 inCallback(inError);
             }
         }));
+    },
+
+    deleteDatabases: function () {
+        this.wrapper(function (inError, inDB) {
+            inDB.clear();
+        });
+        this.bmWrapper(function (inError, inDB) {
+            inDB.clear();
+        });
+        this.hlWrapper(function (inError, inDB) {
+            inDB.clear();
+        });
     }
 };

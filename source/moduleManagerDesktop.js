@@ -11,9 +11,8 @@ enyo.kind({
         {name: "scrim", kind: "onyx.Scrim", classes: "onyx-scrim-translucent"},
         {kind: "onyx.MoreToolbar", components: [
             {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
-            {content: $L("Module Manager")},
-            {fit: true},
-            {kind: "onyx.IconButton", src: "assets/delete.png", ontap: "clearDB"}
+            {content: $L("Module Manager")}
+            //{kind: "onyx.IconButton", src: "assets/delete.png", ontap: "clearDB"}
         ]},
         {classes: "center", components: [
             {content: $L("Download a zipped module from one of the following repositories:")},

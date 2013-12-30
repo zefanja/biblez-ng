@@ -21,6 +21,14 @@ enyo.kind({
                         {name: "tbLinebreak", kind: "onyx.ToggleButton", onChange: "toggleLinebreak"}
                     ]}
                 ]},
+                {tag: "br"},
+                {kind: "onyx.Groupbox", components: [
+                    {kind: "onyx.GroupboxHeader", content: $L("Be careful!")},
+                    {kind: "enyo.FittableColumns", classes: "settings-row", components: [
+                        {kind: "onyx.Button", content: "Delete all modules!", style: "margin: 0 2px;", ontap: "deleteModules"},
+                        {kind: "onyx.Button", content: "Delete all app data!", style: "margin: 0 2px;", ontap: "deleteDatabases"}
+                    ]}
+                ]},
             ]}
 
         ]}
@@ -47,6 +55,14 @@ enyo.kind({
             if(!inError)
                 this.doChange({setting: "linebreak", value: true});
         }));
+    },
+
+    deleteModules: function () {
+        sword.dataMgr.clearDatabase();
+    },
+
+    deleteDatabases: function () {
+        api.deleteDatabases();
     },
 
     handleError: function (inMessage) {

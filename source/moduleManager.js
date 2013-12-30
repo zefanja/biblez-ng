@@ -11,9 +11,7 @@ enyo.kind({
         {name: "scrim", kind: "onyx.Scrim", classes: "onyx-scrim-translucent"},
         {kind: "onyx.MoreToolbar", components: [
             {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
-            {content: $L("Module Manager")},
-            {fit: true},
-            {kind: "onyx.IconButton", src: "assets/delete.png", ontap: "clearDB"}
+            {content: $L("Module Manager")}
         ]},
         {name: "panel", arrangerKind: "CollapsingArranger", fit: true, kind: "Panels", classes: "app-panels", components: [
             {name: "panelLang", kind: "enyo.FittableRows", components: [
