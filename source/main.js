@@ -23,10 +23,10 @@ enyo.kind({
         {kind: "onyx.MoreToolbar", name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 //{kind: "onyx.IconButton", src: "assets/modules.png"},
-                {kind: "onyx.Button", name: "btnModules", style: "background-color: #934A15;"},
+                {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
                 {kind: "onyx.Menu", name: "moduleMenu"}
             ]},
-            {kind: "onyx.Button", name: "btnPassage", ontap: "handleBcSelector"},
+            {kind: "onyx.Button", name: "btnPassage", classes: "tb-button", ontap: "handleBcSelector"},
             //{fit: true},
             {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/menu.png"},

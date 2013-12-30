@@ -65,6 +65,10 @@
     width: 495px;
 }
 
+.tb-button {
+    padding: 5px;
+}
+
 /* MODULE MANAGER */
 
 .item {
@@ -208,5 +212,5 @@ h3, h1 {
 
 /* OVERRIDE SOME ONYX SETTINGS */
 .onyx-toolbar {
-    padding: 2px 5px;
+    padding: 5px;
 }
