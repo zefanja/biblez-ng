@@ -261,6 +261,28 @@ var api = {
         }));
     },
 
+    removeHighlight: function (inHighlight, inCallback) {
+        this.hlWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError)
+                this._remove(inDB, inHighlight.id, enyo.bind(this, function(inError) {
+                    if(!inError)
+                        this.get(inHighlight.osisRef, enyo.bind(this, function(inError, inOsisObject) {
+                            if(!inError) {
+                                if(inOsisObject !== undefined) {
+                                    delete inOsisObject["highlightId"];
+                                    this.put(inOsisObject, inCallback);
+                                } else
+                                    inCallback({message: "api.removeHighlight: Couldn't remove highlightId from osisObject"});
+                            } else
+                                inCallback(inError);
+                        }));
+                    else
+                        inCallback(inError);
+                }));
+            else inCallback(inError);
+        }));
+    },
+
     putSetting: function (inKey, inValue, inCallback) {
         this.get("settings", enyo.bind(this, function (inError, inSettings) {
             if(!inError) {

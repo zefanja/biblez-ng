@@ -14,8 +14,12 @@ enyo.kind({
     components:[
         {kind: "Signals", onOrientationChange: "handleOrientation"},
         {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark", onHighlight: "handleHighlight"},
+        {name: "fontMenu", kind: "biblez.fontMenu", onFontSize: "handleFontSize", onFont: "handleFont"},
         //{kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
+        {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
+            {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
+        ]},
         {kind: "onyx.MoreToolbar", name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 //{kind: "onyx.IconButton", src: "assets/modules.png"},
@@ -39,14 +43,11 @@ enyo.kind({
                         {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
                         {content: $L("Bookmarks")}
                     ]}
-
                 ]}
             ]},
+            {kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu", style:"position:absolute; right:0;"},
             //{name: "btnPrefs", kind:"onyx.IconButton", src: "assets/settings.png", ontap: "handlePrefs"},
             //{name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
-            {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
-                {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
-            ]}
             /*{kind: "onyx.InputDecorator", components: [
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
@@ -82,20 +83,32 @@ enyo.kind({
     create: function () {
         this.inherited(arguments);
         this.$.spinner.stop();
-        api.get("settings", enyo.bind(this, function(inError, inSettings) {
-            //console.log("create", inSettings, this.settings, inError);
-            if(!inError) {
-                this.settings = (inSettings) ? inSettings: this.settings;
-                this.getInstalledModules();
-            } else {
-                this.handleError("Couldn't load settings!");
-            }
-        }));
+        this.startUp();
         this.$.mainPanel.setIndexDirect(2);
     },
 
     rendered: function () {
         this.inherited(arguments);
+    },
+
+    startUp: function () {
+        api.get("settings", enyo.bind(this, function(inError, inSettings) {
+            if(!inError) {
+                this.settings = (inSettings) ? inSettings: this.settings;
+                this.getInstalledModules();
+                if(this.settings.fontSize) {
+                    this.$.fontMenu.setFontSize(this.settings.fontSize);
+                    this.$.main.applyStyle("font-size", this.settings.fontSize + "em");
+                }
+                if(this.settings.font) {
+                    this.$.fontMenu.setFont(this.settings.font);
+                    if(this.settings.font !== "default")
+                        this.$.main.applyStyle("font-family", this.settings.font);
+                }
+            } else {
+                this.handleError("Couldn't load settings!");
+            }
+        }));
     },
 
     handleSettings: function (inSender, inEvent) {
@@ -226,7 +239,9 @@ enyo.kind({
                 if (hlKeys.length !== 0) {
                     api.getHighlights(hlKeys, enyo.bind(this, function (inError, inHighlights) {
                         if(!inError) {
-                            console.log(inHighlights);
+                            inHighlights.forEach(enyo.bind(this, function (hl) {
+                                enyo.dom.byId(hl.osisRef).style.backgroundColor = hl.color;
+                            }));
                         } else
                             this.handleError(inError);
                     }));
@@ -245,7 +260,9 @@ enyo.kind({
     },
 
     handleHighlight: function (inSender, inEvent) {
-        console.log("Added Highlight");
+        if(inEvent.action === "remove") {
+            enyo.dom.byId(inEvent.osisRef).style.backgroundColor = "transparent";
+        }
         this.handleUserData(this.currentPassage.osis);
     },
 
@@ -259,6 +276,23 @@ enyo.kind({
 
     closePopup: function (inSender, inEvent) {
         this.$.bcPopup.hide();
+    },
+
+    handleFontMenu: function (inSender, inEvent) {
+        this.$.fontMenu.showAtEvent(inEvent);
+    },
+
+    handleFont: function (inSender, inEvent) {
+        this.$.main.applyStyle("font-family", inEvent.font);
+        api.putSetting("font", inEvent.font);
+    },
+
+    handleFontSize: function (inSender, inEvent) {
+        if(inEvent.font !== "default")
+            this.$.main.applyStyle("font-size", inEvent.fontSize + "em");
+        else
+            this.$.main.applyStyle("font-size", null);
+        api.putSetting("fontSize", inEvent.fontSize);
     },
 
     handleChangeChapter: function (inSender, inEvent) {
@@ -284,14 +318,20 @@ enyo.kind({
         }
         if(attributes.type === "verseNum") {
             this.$.versePopup.setOsisRef(attributes.osisRef);
-            if(this.userData.hasOwnProperty(attributes.osisRef))
+            if(this.userData.hasOwnProperty(attributes.osisRef)) {
                 if (this.userData[attributes.osisRef].bookmarkId) {
                     this.$.versePopup.setBmExists(true);
                     this.$.versePopup.setBmId(this.userData[attributes.osisRef].bookmarkId);
                 } else
                     this.$.versePopup.setBmExists(false);
-            else {
+                if (this.userData[attributes.osisRef].highlightId) {
+                    this.$.versePopup.setHlExists(true);
+                    this.$.versePopup.setHlId(this.userData[attributes.osisRef].highlightId);
+                } else
+                    this.$.versePopup.setHlExists(false);
+            } else {
                 this.$.versePopup.setBmExists(false);
+                this.$.versePopup.setHlExists(false);
                 this.$.versePopup.setNoteExists(false);
             }
             this.$.versePopup.setLabels();
