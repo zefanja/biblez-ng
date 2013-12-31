@@ -24,9 +24,9 @@ enyo.kind({
                 {tag: "br"},
                 {kind: "onyx.Groupbox", components: [
                     {kind: "onyx.GroupboxHeader", content: $L("Be careful!")},
-                    {kind: "enyo.FittableColumns", classes: "settings-row", components: [
-                        {kind: "onyx.Button", content: "Delete all modules!", style: "margin: 0 2px;", ontap: "deleteModules"},
-                        {kind: "onyx.Button", content: "Delete all app data!", style: "margin: 0 2px;", ontap: "deleteDatabases"}
+                    {kind: "enyo.FittableRows", classes: "settings-row", components: [
+                        {kind: "onyx.Button", content: "Delete all modules!", classes: "onyx-negative", style: "margin: 3px;", ontap: "deleteModules"},
+                        {kind: "onyx.Button", content: "Delete all app data!", classes: "onyx-negative", style: "margin: 3px;", ontap: "deleteDatabases"}
                     ]}
                 ]},
             ]}

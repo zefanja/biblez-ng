@@ -1,3 +1,4 @@
+// VERSE POPUP //
 enyo.kind({
     name: "biblez.versePopup",
     kind: "onyx.Popup",
@@ -8,7 +9,8 @@ enyo.kind({
     events: {
         onBookmark: "",
         onNote: "",
-        onHighlight: ""
+        onHighlight: "",
+        onNoteTap: ""
     },
     published: {
         osisRef: null,
@@ -82,8 +84,15 @@ enyo.kind({
                 else
                     console.log(inError);
             }));
+    },
+
+    handleNote: function (inSender, inEvent) {
+        this.hide();
+        this.doNoteTap({osisRef: this.osisRef, noteId: this.noteId});
     }
 });
+
+// FONT MENU //
 
 enyo.kind({
     name: "biblez.fontMenu",
@@ -168,5 +177,32 @@ enyo.kind({
 
     fontChanged: function(inSender, inEvent) {
         this.$[this.font].setActive(true);
+    }
+});
+
+// NOTE VIEW POPUP //
+enyo.kind({
+    name: "biblez.notePopup",
+    kind: "onyx.Popup",
+    classes: "note-popup",
+    events: {
+        onEdit: ""
+    },
+    published: {
+        osisRef: null,
+        text: ""
+    },
+    components:[
+        {kind: "enyo.Scroller", touch: true, fit: true, components: [
+            {name: "noteText", content: "", allowHtml: true, ontap: "handleTap"}
+        ]}
+    ],
+
+    textChanged: function () {
+        this.$.noteText.setContent(this.text);
+    },
+
+    handleTap: function (inSender, inEvent) {
+        this.doEdit({osisRef: this.osisRef});
     }
 });

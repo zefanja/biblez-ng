@@ -79,6 +79,29 @@ var api = {
         }
     },
 
+    noteWrapper: function (inCallback) {
+        //console.log("isInitialized...", this.isHlInitialized);
+        if (this.isNoteInitialized) {
+            inCallback(null, this.noteStore);
+        } else {
+            var self = this;
+            this.noteStore = new this.store({
+                storeName: "notes",
+                keyPath: 'id',
+                autoIncrement: true,
+                dbVersion: 1,
+                onStoreReady: function() {
+                    self.isNoteInitialized = true;
+                    if(inCallback) inCallback(null, self.noteStore);
+                },
+                onError: function(inError) {
+                    self.isNoteInitialized = false;
+                    if(inCallback) inCallback(inError);
+                }
+            });
+        }
+    },
+
     //Put something in the ObjectStores
     _put: function (inDB, inObject, inCallback) {
         //console.log("Put this:", inDB, inObject);
@@ -137,6 +160,41 @@ var api = {
                     else
                         inCallback(inError);
                 }));
+            else inCallback(inError);
+        }));
+    },
+
+    putNote: function (inObject, inCallback) {
+        this.noteWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError)
+                if(!inObject.id) {
+                    //save a new note
+                    delete inObject["id"];
+                    this._put(inDB, inObject, enyo.bind(this, function(inError, inId) {
+                        if(!inError)
+                            this.get(inObject.osisRef, enyo.bind(this, function(inError, inOsisObject) {
+                                if(!inError) {
+                                    if(inOsisObject === undefined)
+                                        inOsisObject = {id: inObject.osisRef};
+                                    inOsisObject["noteId"] = inId;
+                                    this.put(inOsisObject, inCallback);
+                                } else
+                                    inCallback(inError);
+                            }));
+                        else
+                            inCallback(inError);
+                    }));
+                } else {
+                    //Update an existing note
+                    this.getNote(inObject.id, enyo.bind(this, function (inError, inNoteObject) {
+                        if(!inError) {
+                            inNoteObject["text"] = inObject["text"];
+                            this._put(inDB, inNoteObject, inCallback);
+                        } else {
+                            inCallback(inError);
+                        }
+                    }));
+                }
             else inCallback(inError);
         }));
     },
@@ -209,6 +267,20 @@ var api = {
         }));
     },
 
+    getNote: function (inId, inCallback) {
+        this.noteWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError) this._get(inDB, inId, inCallback);
+            else inCallback(inError);
+        }));
+    },
+
+    getNotes: function (inIds, inCallback) {
+        this.noteWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError) this._getBatch(inDB, inIds, inCallback);
+            else inCallback(inError);
+        }));
+    },
+
     getUserData: function(inOsis, inVMax, inCallback) {
         var z=1,
             userData = {};
@@ -219,6 +291,8 @@ var api = {
                     if(inData && inData.bookmarkId)
                         userData[inData.id] = inData;
                     if(inData && inData.highlightId)
+                        userData[inData.id] = inData;
+                    if(inData && inData.noteId)
                         userData[inData.id] = inData;
                     if(z === inVMax) inCallback(null, userData);
                     else z++;
@@ -283,6 +357,28 @@ var api = {
         }));
     },
 
+    removeNote: function (inNote, inCallback) {
+        this.noteWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError)
+                this._remove(inDB, inNote.id, enyo.bind(this, function(inError) {
+                    if(!inError)
+                        this.get(inNote.osisRef, enyo.bind(this, function(inError, inOsisObject) {
+                            if(!inError) {
+                                if(inOsisObject !== undefined) {
+                                    delete inOsisObject["noteId"];
+                                    this.put(inOsisObject, inCallback);
+                                } else
+                                    inCallback({message: "api.removeHighlight: Couldn't remove noteId from osisObject"});
+                            } else
+                                inCallback(inError);
+                        }));
+                    else
+                        inCallback(inError);
+                }));
+            else inCallback(inError);
+        }));
+    },
+
     putSetting: function (inKey, inValue, inCallback) {
         this.get("settings", enyo.bind(this, function (inError, inSettings) {
             if(!inError) {
@@ -304,5 +400,11 @@ var api = {
         this.hlWrapper(function (inError, inDB) {
             inDB.clear();
         });
+    },
+
+    formatOsis: function (inOsis) {
+        var split = inOsis.split(".");
+        var formatted = split[0] + " " + split[1];
+        return  (split[2]) ? formatted + ":" + split[2] : formatted;
     }
 };

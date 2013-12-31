@@ -6,15 +6,17 @@ enyo.kind({
         onOpenModuleManager: "",
         onOpenPreferences: "",
         onModuleChanged: "",
-        onOpenBC: ""
+        onOpenBC: "",
+        onOpenNotes: ""
     },
     published: {
         passage: ""
     },
     components:[
         {kind: "Signals", onOrientationChange: "handleOrientation"},
-        {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark", onHighlight: "handleHighlight"},
+        {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark", onHighlight: "handleHighlight", onNoteTap: "handleNoteTap"},
         {name: "fontMenu", kind: "biblez.fontMenu", onFontSize: "handleFontSize", onFont: "handleFont"},
+        {name: "notePopup", kind: "biblez.notePopup", onEdit: "handleNoteTap"},
         //{kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
@@ -31,17 +33,26 @@ enyo.kind({
             {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/menu.png"},
                 {kind: "onyx.Menu", name: "actionMenu", style: "width: 200px;", components: [
+                    {action: "bookmarks", components: [
+                        {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
+                        {content: $L("Bookmarks"), classes: "menu-label"}
+                    ]},
+                    {action: "notes", components: [
+                        {kind: "onyx.IconButton", src: "assets/notes.png"},
+                        {content: $L("Notes"), classes: "menu-label"}
+                    ]},
+                    {action: "highlights", components: [
+                        {kind: "onyx.IconButton", src: "assets/highlights.png"},
+                        {content: $L("Highlights"), classes: "menu-label"}
+                    ]},
+                    {classes: "onyx-menu-divider"},
                     {action: "moduleManager", components: [
                         {kind: "onyx.IconButton", src: "assets/add.png"},
-                        {content: $L("Module Manager")}
+                        {content: $L("Module Manager"), classes: "menu-label"}
                     ]},
                     {action: "preferences", components: [
                         {kind: "onyx.IconButton", src: "assets/settings.png"},
-                        {content: $L("Preferences")}
-                    ]},
-                    {action: "bookmarks", components: [
-                        {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
-                        {content: $L("Bookmarks")}
+                        {content: $L("Preferences"), classes: "menu-label"}
                     ]}
                 ]}
             ]},
@@ -224,10 +235,12 @@ enyo.kind({
 
     handleUserData: function (inOsis) {
         var vmax = this.currentModule.getVersesInChapter(inOsis),
-            hlKeys = [];
+            hlKeys = [],
+            noteKeys = [];
         api.getUserData(inOsis, vmax, enyo.bind(this, function (inError, inUserData) {
             if(!inError) {
                 this.userData = inUserData;
+                //console.log(this.userData);
                 Object.keys(inUserData).forEach(function (key) {
                     if(inUserData[key].bookmarkId && !enyo.dom.byId("img"+key)) {
                         enyo.dom.byId(key).insertAdjacentHTML("beforeend", " <img id='img" + key + "' src='assets/bookmark.png' />");
@@ -235,12 +248,26 @@ enyo.kind({
                     if(inUserData[key].highlightId) {
                         hlKeys.push(inUserData[key].highlightId);
                     }
+                    if(inUserData[key].noteId) {
+                        noteKeys.push(inUserData[key].noteId);
+                    }
                 });
                 if (hlKeys.length !== 0) {
                     api.getHighlights(hlKeys, enyo.bind(this, function (inError, inHighlights) {
                         if(!inError) {
                             inHighlights.forEach(enyo.bind(this, function (hl) {
                                 enyo.dom.byId(hl.osisRef).style.backgroundColor = hl.color;
+                            }));
+                        } else
+                            this.handleError(inError);
+                    }));
+                }
+                if (noteKeys.length !== 0) {
+                    api.getNotes(noteKeys, enyo.bind(this, function (inError, inNotes) {
+                        if(!inError) {
+                            inNotes.forEach(enyo.bind(this, function (note) {
+                                if(!enyo.dom.byId("note"+note.osisRef))
+                                    enyo.dom.byId(note.osisRef).insertAdjacentHTML("beforeend", " <a href=?type=note&osisRef=" + note.osisRef + "&id=" + note.id + " id='note" + note.osisRef + "'><img src='assets/note.png' /></a>");
                             }));
                         } else
                             this.handleError(inError);
@@ -262,6 +289,22 @@ enyo.kind({
     handleHighlight: function (inSender, inEvent) {
         if(inEvent.action === "remove") {
             enyo.dom.byId(inEvent.osisRef).style.backgroundColor = "transparent";
+        }
+        this.handleUserData(this.currentPassage.osis);
+    },
+
+    handleNoteTap: function (inSender, inEvent) {
+        //console.log(inEvent);
+        if (this.userData[inEvent.osisRef] && this.userData[inEvent.osisRef].noteId !== undefined)
+            inEvent["noteId"] = this.userData[inEvent.osisRef].noteId;
+        this.doOpenNotes(inEvent);
+    },
+
+    handleNote: function (inSender, inEvent) {
+        //console.log("handleNote", inEvent);
+        if(inEvent.action === "remove") {
+            var oldNoteImg = enyo.dom.byId("note"+inEvent.osisRef);
+            oldNoteImg.parentNode.removeChild(oldNoteImg);
         }
         this.handleUserData(this.currentPassage.osis);
     },
@@ -309,8 +352,9 @@ enyo.kind({
     handleVerseTap: function (inSender, inEvent) {
         inEvent.preventDefault();
         var attributes = {};
-        if(inEvent.target.href) {
-            var url = inEvent.target.href;
+        //console.log(inEvent);
+        if(inEvent.target.href || inEvent.target.parentNode.href) {
+            var url = inEvent.target.href || inEvent.target.parentNode.href;
             url.split("?")[1].split("&").forEach(function(item) {
                 item = item.split("=");
                 attributes[item[0]] = item[1];
@@ -329,13 +373,30 @@ enyo.kind({
                     this.$.versePopup.setHlId(this.userData[attributes.osisRef].highlightId);
                 } else
                     this.$.versePopup.setHlExists(false);
+                if (this.userData[attributes.osisRef].noteId) {
+                    this.$.versePopup.setNoteExists(true);
+                    this.$.versePopup.setNoteId(this.userData[attributes.osisRef].noteId);
+                } else {
+                    this.$.versePopup.setNoteExists(false);
+                    this.$.versePopup.setNoteId(null);
+                }
             } else {
                 this.$.versePopup.setBmExists(false);
                 this.$.versePopup.setHlExists(false);
                 this.$.versePopup.setNoteExists(false);
+                this.$.versePopup.setNoteId(null);
             }
             this.$.versePopup.setLabels();
             this.$.versePopup.showAtEvent(inEvent);
+        } else if (attributes.type === "note") {
+            api.getNote(parseInt(attributes.id, 10), enyo.bind(this, function (inError, inNote) {
+                if(!inError) {
+                    this.$.notePopup.setText(inNote.text);
+                    this.$.notePopup.setOsisRef(inNote.osisRef);
+                    this.$.notePopup.showAtEvent(inEvent);
+                } else
+                    this.handleError(inError);
+            }));
         }
         return true;
     },
