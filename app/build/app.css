@@ -1818,6 +1818,10 @@
     padding: 5px;
 }
 
+.menu-label {
+    margin-left: 10px;
+}
+
 /* MODULE MANAGER */
 
 .item {
@@ -1957,6 +1961,15 @@ h3, h1 {
 
 .settings-row {
     padding: 5px;
+}
+
+/* NOTES */
+.note-input {
+    text-align: left;
+}
+
+.note-popup {
+    max-width: 300px;
 }
 
 /* OVERRIDE SOME ONYX SETTINGS */
