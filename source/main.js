@@ -64,7 +64,7 @@ enyo.kind({
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
         ]},
-        {name: "mainPanel", kind: "Panels", fit: true, animate: false, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+        {name: "mainPanel", kind: "Panels", fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
             {},
             {kind: "FittableColumns", noStretch: true, components: [
                 {fit: true},
@@ -83,7 +83,8 @@ enyo.kind({
                 {tag: "img", src: "assets/biblez128.png", style: "margin: 20px;"},
                 {content: $L("You have no modules installed. Open the Module Manager to install one."), style: "font-weight: bold; margin-bottom: 20px;"},
                 {kind: "onyx.Button", classes: "onyx-affirmative", content: $L("Open Module Manager"), ontap: "doOpenModuleManager"}
-            ]}
+            ]},
+            {}
         ]},
     ],
 
