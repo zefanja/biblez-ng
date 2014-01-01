@@ -10,7 +10,7 @@ enyo.kind({
         module: null
     },
     components: [
-        {name: "bcPanel", kind: "Panels", arrangerKind: "CardArranger", fit: true, components: [
+        {name: "bcPanel", kind: "Panels", arrangerKind: "CardArranger", animate: false, fit: true, components: [
             {name: "bookPanel", kind: "enyo.FittableRows", components: [
                 {kind: "onyx.Toolbar", components: [
                     {kind: "onyx.IconButton", src: "assets/back.png", ontap: "doBack"},

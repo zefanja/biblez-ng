@@ -26,13 +26,13 @@ enyo.kind({
         {kind: "onyx.MoreToolbar", showing: false, name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
-                {kind: "onyx.Menu", name: "moduleMenu"}
+                {kind: "onyx.Menu", maxHeight: "400", name: "moduleMenu"}
             ]},
             {kind: "onyx.Button", name: "btnPassage", classes: "tb-button", ontap: "handleBcSelector"},
             //{fit: true},
             {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/menu.png"},
-                {kind: "onyx.Menu", name: "actionMenu", style: "width: 200px;", components: [
+                {kind: "onyx.Menu", name: "actionMenu", maxHeight: "400", style: "width: 200px;", components: [
                     {action: "bookmarks", components: [
                         {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
                         {content: $L("Bookmarks"), classes: "menu-label"}
@@ -56,7 +56,8 @@ enyo.kind({
                     ]}
                 ]}
             ]},
-            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu", style:"position:absolute; right:0;"},
+            {fit: true},
+            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"},
             //{name: "btnPrefs", kind:"onyx.IconButton", src: "assets/settings.png", ontap: "handlePrefs"},
             //{name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
             /*{kind: "onyx.InputDecorator", components: [
@@ -78,7 +79,8 @@ enyo.kind({
                 {fit: true}
             ]},
             {},
-            {name: "firstStart", classes: "center", style: "margin-top: 100px;", components: [
+            {name: "firstStart", classes: "center", style: "margin-top: 20px;", components: [
+                {tag: "img", src: "assets/biblez128.png", style: "margin: 20px;"},
                 {content: $L("You have no modules installed. Open the Module Manager to install one."), style: "font-weight: bold; margin-bottom: 20px;"},
                 {kind: "onyx.Button", classes: "onyx-affirmative", content: $L("Open Module Manager"), ontap: "doOpenModuleManager"}
             ]}
