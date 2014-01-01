@@ -7,7 +7,8 @@ enyo.kind({
         onOpenPreferences: "",
         onModuleChanged: "",
         onOpenBC: "",
-        onOpenNotes: ""
+        onOpenNotes: "",
+        onOpenDataView: ""
     },
     published: {
         passage: ""
@@ -22,9 +23,8 @@ enyo.kind({
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
             {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
         ]},
-        {kind: "onyx.MoreToolbar", name: "topTB", components: [
+        {kind: "onyx.MoreToolbar", showing: false, name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
-                //{kind: "onyx.IconButton", src: "assets/modules.png"},
                 {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
                 {kind: "onyx.Menu", name: "moduleMenu"}
             ]},
@@ -56,14 +56,14 @@ enyo.kind({
                     ]}
                 ]}
             ]},
-            {kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu", style:"position:absolute; right:0;"},
+            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu", style:"position:absolute; right:0;"},
             //{name: "btnPrefs", kind:"onyx.IconButton", src: "assets/settings.png", ontap: "handlePrefs"},
             //{name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
             /*{kind: "onyx.InputDecorator", components: [
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
         ]},
-        {name: "mainPanel", kind: "Panels", fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+        {name: "mainPanel", kind: "Panels", fit: true, animate: false, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
             {},
             {kind: "FittableColumns", noStretch: true, components: [
                 {fit: true},
@@ -78,6 +78,10 @@ enyo.kind({
                 {fit: true}
             ]},
             {},
+            {name: "firstStart", classes: "center", style: "margin-top: 100px;", components: [
+                {content: $L("You have no modules installed. Open the Module Manager to install one."), style: "font-weight: bold; margin-bottom: 20px;"},
+                {kind: "onyx.Button", classes: "onyx-affirmative", content: $L("Open Module Manager"), ontap: "doOpenModuleManager"}
+            ]}
         ]},
     ],
 
@@ -138,14 +142,15 @@ enyo.kind({
         sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
             if (!inError) {
                 if(inModules.length !== 0) {
-                    this.$.moduleSelector.show();
-                    this.$.btnPassage.show();
+                    this.$.mainPanel.setIndex(2);
+                    this.$.mainPanel.draggable = true;
+                    this.$.topTB.show();
                     this.modules = inModules;
                     this.renderModuleMenu(this.modules);
                 } else {
-                    this.$.moduleSelector.hide();
-                    this.$.btnPassage.hide();
-                    this.$.main.setContent("<center>" + $L("You have no modules installed. Tap on the '+' to install one!" + "</center>"));
+                    this.$.topTB.hide();
+                    this.$.mainPanel.draggable = false;
+                    this.$.mainPanel.setIndex(5);
                 }
             } else {
                 this.handleError(inError);
@@ -213,6 +218,11 @@ enyo.kind({
         this.$.spinner.start();
 
         if (typeof passage === "string") {
+            //BibleZ currently supports only Book.Chapter Osis passages in the mainView
+            if(passage.split(".").length > 2) {
+                passage = passage.slice(0, passage.lastIndexOf("."));
+            }
+
             this.currentPassage.osis = passage.replace(" ", ".");
             this.currentPassage.label = passage.replace(".", " ");
         }
@@ -339,14 +349,16 @@ enyo.kind({
     },
 
     handleChangeChapter: function (inSender, inEvent) {
-        if(this.currentModule) {
-            if(this.panelIndex === 1) {
-                this.handlePassage(sword.verseKey.previous(this.currentPassage.osis, this.currentModule.config.Versification).osis);
-            } else if(this.panelIndex === 3) {
-                this.handlePassage(sword.verseKey.next(this.currentPassage.osis, this.currentModule.config.Versification).osis);
+        if(this.$.mainPanel.getIndex() !== 5) {
+            if(this.currentModule) {
+                if(this.panelIndex === 1) {
+                    this.handlePassage(sword.verseKey.previous(this.currentPassage.osis, this.currentModule.config.Versification).osis);
+                } else if(this.panelIndex === 3) {
+                    this.handlePassage(sword.verseKey.next(this.currentPassage.osis, this.currentModule.config.Versification).osis);
+                }
             }
+            this.$.mainPanel.setIndexDirect(2);
         }
-        this.$.mainPanel.setIndexDirect(2);
     },
 
     handleVerseTap: function (inSender, inEvent) {
@@ -407,6 +419,8 @@ enyo.kind({
             this.doOpenModuleManager();
         else if(inEvent.originator.action === "preferences")
             this.doOpenPreferences();
+        else
+            this.doOpenDataView({section: inEvent.originator.action});
     },
 
     handlePanelIndex: function (inSender, inEvent) {

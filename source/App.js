@@ -11,12 +11,20 @@ enyo.kind({
     fit: true,
     components: [
         {name: "panel", kind: "Panels", fit: true, animate: false, classes: "app-panels", arrangerKind: "CardArranger", draggable: false, onTransitionFinish: "handlePanels", components: [
-            {name: "main", kind: "biblez.main", onOpenModuleManager: "openModuleManager", onOpenBC: "openSelector", onModuleChanged: "handleChangeModule", onOpenPreferences: "openPreferences", onOpenNotes: "openNotes"},
+            {name: "main", kind: "biblez.main",
+                onOpenModuleManager: "openModuleManager",
+                onOpenBC: "openSelector",
+                onModuleChanged: "handleChangeModule",
+                onOpenPreferences: "openPreferences",
+                onOpenNotes: "openNotes",
+                onOpenDataView: "openDataView"
+            },
             {name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "bcSelector", kind: "biblez.bcSelector", onSelect: "handlePassageSelect", onBack: "handleBack"},
             {name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "settings", kind: "biblez.settings", onBack: "handleBack", onChange: "handleSettings"},
-            {name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"}
+            {name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"},
+            {name: "dataView", kind: "biblez.dataView", onBack: "handleBack", onVerse: "handleVerse"}
         ]}
     ],
 
@@ -46,8 +54,11 @@ enyo.kind({
     openModuleManager: function (inSender, inEvent) {
         if(enyo.platform.firefox)
             this.$.panel.setIndex(3);
-        else
+        else {
             this.$.panel.setIndex(1);
+            this.$.moduleManager.start();
+        }
+
         return true;
     },
 
@@ -86,6 +97,17 @@ enyo.kind({
 
     handleNote: function (inSender, inEvent) {
         this.$.main.handleNote(inSender, inEvent);
+        return true;
+    },
+
+    openDataView: function (inSender, inEvent) {
+        this.$.dataView.setSection(inEvent.section);
+        this.$.panel.setIndex(6);
+    },
+
+    handleVerse: function (inSender, inEvent) {
+        this.$.main.handlePassage(inEvent.osisRef);
+        this.$.panel.setIndex(0);
         return true;
     }
 });

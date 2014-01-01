@@ -42,7 +42,10 @@ var api = {
                 storeName: "bookmarks",
                 keyPath: 'id',
                 autoIncrement: true,
-                dbVersion: 1,
+                dbVersion: 2,
+                indexes: [
+                    {name: "osisRef", keyPath: "osisRef", unique: true}
+                ],
                 onStoreReady: function() {
                     //console.log("isInitialized", self.isInitialized);
                     self.isBmInitialized = true;
@@ -66,7 +69,10 @@ var api = {
                 storeName: "highlights",
                 keyPath: 'id',
                 autoIncrement: true,
-                dbVersion: 1,
+                dbVersion: 2,
+                indexes: [
+                    {name: "osisRef", keyPath: "osisRef", unique: true}
+                ],
                 onStoreReady: function() {
                     self.isHlInitialized = true;
                     if(inCallback) inCallback(null, self.hlStore);
@@ -89,7 +95,10 @@ var api = {
                 storeName: "notes",
                 keyPath: 'id',
                 autoIncrement: true,
-                dbVersion: 1,
+                dbVersion: 2,
+                indexes: [
+                    {name: "osisRef", keyPath: "osisRef", unique: true}
+                ],
                 onStoreReady: function() {
                     self.isNoteInitialized = true;
                     if(inCallback) inCallback(null, self.noteStore);
@@ -232,6 +241,13 @@ var api = {
         );
     },
 
+    _query: function(inDB, inOptions, inCallback) {
+        //inOptions["onError"] = function (inError) {inCallback(inError);};
+        inDB.query(function (inResults) {
+            inCallback(null, inResults);
+        }, inOptions);
+    },
+
     get: function (inId, inCallback) {
         this.wrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._get(inDB, inId, inCallback);
@@ -255,7 +271,7 @@ var api = {
 
     getAllBookmarks: function (inCallback) {
         this.bmWrapper(enyo.bind(this, function (inError, inDB) {
-            if(!inError) this._getAll(inDB, inCallback);
+            if(!inError) this._query(inDB, {index: "osisRef"}, inCallback);
             else inCallback(inError);
         }));
     },
@@ -263,6 +279,13 @@ var api = {
     getHighlights: function (inIds, inCallback) {
         this.hlWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._getBatch(inDB, inIds, inCallback);
+            else inCallback(inError);
+        }));
+    },
+
+    getAllHighlights: function (inCallback) {
+        this.hlWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError) this._query(inDB, {index: "osisRef"}, inCallback);
             else inCallback(inError);
         }));
     },
@@ -277,6 +300,13 @@ var api = {
     getNotes: function (inIds, inCallback) {
         this.noteWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._getBatch(inDB, inIds, inCallback);
+            else inCallback(inError);
+        }));
+    },
+
+    getAllNotes: function (inCallback) {
+        this.noteWrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError) this._query(inDB, {index: "osisRef"}, inCallback);
             else inCallback(inError);
         }));
     },

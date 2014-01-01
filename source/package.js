@@ -13,5 +13,6 @@ enyo.depends(
     "popup.js",
     "settings.js",
     "notes.js",
+    "dataView.js",
 	"App.js"
 );
