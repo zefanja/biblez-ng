@@ -1972,6 +1972,22 @@ h3, h1 {
     max-width: 300px;
 }
 
+/* DATA VIEW */
+.data-view-back {
+    position: absolute;
+    left: 0;
+    margin: 8px 2px 1px;
+}
+
+.data-view-button.active {
+    border: 2px solid;
+    border-radius: 5px;
+}
+
+.item-text {
+    font-size: 0.9em;
+}
+
 /* OVERRIDE SOME ONYX SETTINGS */
 .onyx-toolbar {
     padding: 5px;
