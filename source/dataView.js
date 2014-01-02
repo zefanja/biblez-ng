@@ -19,6 +19,7 @@ enyo.kind({
                 {name: "rbHl", src: "assets/highlightsTB.png", section: "highlights", style: "margin: 0 10px;"}
             ]},
         ]},
+        {name: "noData", classes: "center", style: "margin-top: 10px;", showing: false},
         {name: "dataList", kind: "List", fit: true, touch: true, onSetupItem: "setupItem", components: [
             {name: "item", classes: "item", ontap: "handleListTap", components: [
                 {kind: "enyo.FittableRows", components: [
@@ -33,9 +34,9 @@ enyo.kind({
 
     sectionActivated: function (inSender, inEvent) {
         if (inEvent.originator.getActive()) {
-            this.section = inEvent.originator.section;
-            this.sectionChanged();
+            this.setSection(inEvent.originator.section);
         }
+        return true;
     },
 
     sectionChanged: function (inSender, inEvent) {
@@ -45,6 +46,11 @@ enyo.kind({
                 if(!inError) {
                     this.data = inData;
                     this.$.dataList.setCount(this.data.length);
+                    if(this.data.length === 0) {
+                        this.$.noData.show();
+                        this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
+                    } else
+                        this.$.noData.hide();
                     this.$.dataList.refresh();
                 } else
                     this.handleError(inError);
@@ -55,6 +61,11 @@ enyo.kind({
                 if(!inError) {
                     this.data = inData;
                     this.$.dataList.setCount(this.data.length);
+                    if(this.data.length === 0) {
+                        this.$.noData.show();
+                        this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
+                    } else
+                        this.$.noData.hide();
                     this.$.dataList.refresh();
                 } else
                     this.handleError(inError);
@@ -64,6 +75,11 @@ enyo.kind({
             api.getAllHighlights(enyo.bind(this, function (inError, inData) {
                 if(!inError) {
                     this.data = inData;
+                    if(this.data.length === 0) {
+                        this.$.noData.show();
+                        this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
+                    } else
+                        this.$.noData.hide();
                     this.$.dataList.setCount(this.data.length);
                     this.$.dataList.refresh();
                 } else

@@ -239,7 +239,6 @@ h3, h1 {
     font-size: 0.9em;
 }
 
-/* OVERRIDE SOME ONYX SETTINGS */
-.onyx-toolbar {
+.main-toolbar {
     padding: 5px;
 }

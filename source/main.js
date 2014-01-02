@@ -23,7 +23,7 @@ enyo.kind({
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
             {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
         ]},
-        {kind: "onyx.MoreToolbar", showing: false, name: "topTB", components: [
+        {kind: "onyx.MoreToolbar", showing: false, classes: "main-toolbar", name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
                 {kind: "onyx.Menu", maxHeight: "400", name: "moduleMenu"}
@@ -56,8 +56,7 @@ enyo.kind({
                     ]}
                 ]}
             ]},
-            {fit: true},
-            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"},
+            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu", style: "position:absolute; right: 0;"},
             //{name: "btnPrefs", kind:"onyx.IconButton", src: "assets/settings.png", ontap: "handlePrefs"},
             //{name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
             /*{kind: "onyx.InputDecorator", components: [
@@ -148,6 +147,7 @@ enyo.kind({
                     this.$.mainPanel.setIndex(2);
                     this.$.mainPanel.draggable = true;
                     this.$.topTB.show();
+                    this.$.topTB.reflow();
                     this.modules = inModules;
                     this.renderModuleMenu(this.modules);
                 } else {
