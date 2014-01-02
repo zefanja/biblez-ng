@@ -17,14 +17,16 @@ enyo.kind({
                 onModuleChanged: "handleChangeModule",
                 onOpenPreferences: "openPreferences",
                 onOpenNotes: "openNotes",
-                onOpenDataView: "openDataView"
+                onOpenDataView: "openDataView",
+                onOpenAbout: "openAbout"
             },
             {name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "bcSelector", kind: "biblez.bcSelector", onSelect: "handlePassageSelect", onBack: "handleBack"},
             {name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "settings", kind: "biblez.settings", onBack: "handleBack", onChange: "handleSettings"},
             {name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"},
-            {name: "dataView", kind: "biblez.dataView", onBack: "handleBack", onVerse: "handleVerse"}
+            {name: "dataView", kind: "biblez.dataView", onBack: "handleBack", onVerse: "handleVerse"},
+            {name: "about", kind: "biblez.about", onBack: "handleBack"}
         ]}
     ],
 
@@ -109,6 +111,10 @@ enyo.kind({
         this.$.main.handlePassage(inEvent.osisRef);
         this.$.panel.setIndex(0);
         return true;
+    },
+
+    openAbout: function (inSender, inEvent) {
+        this.$.panel.setIndex(7);
     }
 });
 

@@ -8,7 +8,8 @@ enyo.kind({
         onModuleChanged: "",
         onOpenBC: "",
         onOpenNotes: "",
-        onOpenDataView: ""
+        onOpenDataView: "",
+        onOpenAbout: ""
     },
     published: {
         passage: ""
@@ -58,6 +59,10 @@ enyo.kind({
                     {action: "preferences", components: [
                         {kind: "onyx.IconButton", src: "assets/settings.png"},
                         {content: $L("Preferences"), classes: "menu-label"}
+                    ]},
+                    {action: "about", components: [
+                        {kind: "onyx.IconButton", src: "assets/info.png"},
+                        {content: $L("About"), classes: "menu-label"}
                     ]}
                 ]}
             ]},
@@ -473,6 +478,8 @@ enyo.kind({
             this.doOpenModuleManager();
         else if(inEvent.originator.action === "preferences")
             this.doOpenPreferences();
+        else if(inEvent.originator.action === "about")
+            this.doOpenAbout();
         else
             this.doOpenDataView({section: inEvent.originator.action});
     },
