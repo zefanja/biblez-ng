@@ -23,16 +23,21 @@ enyo.kind({
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
             {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
         ]},
-        {kind: "onyx.MoreToolbar", showing: false, classes: "main-toolbar", name: "topTB", components: [
+        {kind: "onyx.MoreToolbar", classes: "main-toolbar", name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
-                {kind: "onyx.Menu", maxHeight: "400", name: "moduleMenu"}
+                {kind: "onyx.Menu", maxHeight: "300", name: "moduleMenu"}
             ]},
             {kind: "onyx.Button", name: "btnPassage", classes: "tb-button", ontap: "handleBcSelector"},
-            //{fit: true},
+            {name: "historySelector", kind: "onyx.MenuDecorator", onSelect: "historySelected", components: [
+                //Clock Icon by Thomas Le Bas from The Noun Project
+                {kind: "onyx.IconButton", name: "btnHistory", src: "assets/history.png"},
+                {kind: "onyx.Menu", maxHeight: "300", name: "historyMenu"}
+            ]},
+            {fit: true},
             {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/menu.png"},
-                {kind: "onyx.Menu", name: "actionMenu", maxHeight: "400", style: "width: 200px;", components: [
+                {kind: "onyx.Menu", name: "actionMenu", maxHeight: "300", style: "width: 200px;", components: [
                     {action: "bookmarks", components: [
                         {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
                         {content: $L("Bookmarks"), classes: "menu-label"}
@@ -56,7 +61,7 @@ enyo.kind({
                     ]}
                 ]}
             ]},
-            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu", style: "position:absolute; right: 0;"},
+            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"},
             //{name: "btnPrefs", kind:"onyx.IconButton", src: "assets/settings.png", ontap: "handlePrefs"},
             //{name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
             /*{kind: "onyx.InputDecorator", components: [
@@ -94,6 +99,7 @@ enyo.kind({
     },
     userData: {},
     modules: [],
+    history: [],
     panelIndex: 2,
     settings: {id: "settings"},
 
@@ -104,14 +110,11 @@ enyo.kind({
         this.$.mainPanel.setIndexDirect(2);
     },
 
-    rendered: function () {
-        this.inherited(arguments);
-    },
-
     startUp: function () {
         api.get("settings", enyo.bind(this, function(inError, inSettings) {
             if(!inError) {
                 this.settings = (inSettings) ? inSettings: this.settings;
+                //console.log(this.settings);
                 this.getInstalledModules();
                 if(this.settings.fontSize) {
                     this.$.fontMenu.setFontSize(this.settings.fontSize);
@@ -122,6 +125,8 @@ enyo.kind({
                     if(this.settings.font !== "default")
                         this.$.main.applyStyle("font-family", this.settings.font);
                 }
+                if(this.settings.history)
+                    this.history = this.settings.history;
             } else {
                 this.handleError("Couldn't load settings!");
             }
@@ -147,12 +152,13 @@ enyo.kind({
                     this.$.mainPanel.setIndex(2);
                     this.$.mainPanel.draggable = true;
                     this.$.topTB.show();
-                    this.$.topTB.reflow();
                     this.modules = inModules;
                     this.renderModuleMenu(this.modules);
+                    this.$.firstStart.hide();
                 } else {
                     this.$.topTB.hide();
                     this.$.mainPanel.draggable = false;
+                    this.$.firstStart.show();
                     this.$.mainPanel.setIndex(5);
                 }
             } else {
@@ -203,7 +209,7 @@ enyo.kind({
         if (!isNaN(inEvent.originator.index)) {
             this.currentModule = this.modules[inEvent.originator.index];
             this.settings["lastModule"] = this.currentModule.modKey;
-            this.handleUnload();
+            api.putSetting("lastModule", this.currentModule.modKey);
             this.renderModuleMenu();
         }
     },
@@ -212,6 +218,7 @@ enyo.kind({
         this.$.bcPopup.hide();
         this.currentPassage.osis = inEvent.osis;
         this.currentPassage.label = inEvent.label;
+        //this.currentPassage.verseNumber = inEvent.verseNumber;
         this.handlePassage();
     },
 
@@ -219,12 +226,15 @@ enyo.kind({
         //console.log("PASSAGE", passage, this.currentPassage);
         this.$.main.setContent("");
         this.$.spinner.start();
+        var verseNumber = 0; //this.currentPassage.verseNumber ? this.currentPassage.verseNumber : 0;
 
         if (typeof passage === "string") {
             //BibleZ currently supports only Book.Chapter Osis passages in the mainView
             if(passage.split(".").length > 2) {
+                verseNumber = parseInt(passage.slice(passage.lastIndexOf(".")+1, passage.length), 10);
                 passage = passage.slice(0, passage.lastIndexOf("."));
-            }
+            } else
+                verseNumber = 0;
 
             this.currentPassage.osis = passage.replace(" ", ".");
             this.currentPassage.label = passage.replace(".", " ");
@@ -232,18 +242,59 @@ enyo.kind({
 
         //Persist current passage
         this.settings["lastRead"] = this.currentPassage;
-        this.handleUnload();
+        this.addToHistory(this.currentPassage.osis);
+        api.putSetting("lastRead", this.currentPassage);
 
         this.$.btnPassage.setContent(this.currentPassage.label);
+        //Adjust the TB Icons
+        this.$.topTB.reflow();
+
         this.currentModule.renderText(this.currentPassage.osis, {oneVersePerLine: this.settings.linebreak ? this.settings.linebreak : false}, enyo.bind(this, function (inError, inText) {
             this.$.spinner.stop();
             if(!inError) {
-                this.$.verseScroller.scrollToTop();
                 this.$.main.setContent(inText);
+                if (verseNumber < 2)
+                    this.$.verseScroller.scrollToTop();
+                else {
+                    var e = enyo.dom.byId(this.currentPassage.osis+"."+verseNumber);
+                    this.$.verseScroller.scrollToNode(e);
+                    e.style.backgroundColor = "rgba(210,105,30,0.25)";
+                    //e.className = e.className + " active-verse";
+                }
                 this.handleUserData(this.currentPassage.osis);
+                this.renderHistory();
             } else
                 this.handleError(inError.message);
         }));
+    },
+
+    renderHistory: function (inSender, inEvent) {
+        this.$.historyMenu.destroyClientControls();
+        var hisItems = [];
+        this.history.forEach(enyo.bind(this, function (item, idx) {
+            hisItems.push({content: api.formatOsis(item.osisRef), index: idx, osisRef: item.osisRef});
+        }));
+        this.$.historyMenu.createComponents(hisItems, {owner: this.$.historyMenu});
+        this.$.historyMenu.render();
+    },
+
+    historySelected: function (inSender, inEvent) {
+        if (!isNaN(inEvent.originator.index)) {
+            this.handlePassage(this.history[inEvent.originator.index].osisRef);
+        }
+    },
+
+    addToHistory: function (inOsis) {
+        if (this.history.length > 15) {
+            this.history.splice(16,this.history.length-15);
+        }
+        for (var l=0;l<this.history.length;l++) {
+            if(this.history[l].osisRef === inOsis) {
+                this.history.splice(l,1);
+            }
+        }
+        this.history.unshift({osisRef: inOsis});
+        api.putSetting("history", this.history);
     },
 
     handleUserData: function (inOsis) {
@@ -438,10 +489,6 @@ enyo.kind({
         else if (orientation === "landscape-primary" || orientation === "landscape-secondary" ) {
             this.$.topTB.hide();
         }
-    },
-
-    handleUnload: function (inSender, inEvent) {
-        api.put(this.settings);
     },
 
     handleError: function (inMessage) {

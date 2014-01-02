@@ -1,19 +1,20 @@
 {
-  "name": "BibleZ Debug",
-  "description": "Read and study the Bible!",
-  "launch_path": "/debug.html",
-  "icons": {
-    "128": "/assets/biblez128.png"
-  },
-  "developer": {
-    "name": "zefanjas",
-    "url": "http://zefanjas.de"
-  },
-  "default_locale": "en",
-  "type": "privileged",
-  "permissions": {
-    "systemXHR": {
-      "description": "Required to download CrossWire's bible modules"
+    "name": "BibleZ",
+    "version": "1.0",
+    "description": "BibleZ is an easy to use offline bible reader app for your FirefoxOS device! Enjoy the full bible at your fingertips! Features: * many available bibles in different languages (e.g. ESV, KJV, NET (free version), ...) * notes * bookmarks * highlights * history of last read scriptures * no internet connection required (only for downloading modules). BibleZ is based on the SWORD Project (http://crosswire.org) and licenced under GPLv3. If you have any problems with this app just send an eMail to info@zefanjas.de!",
+    "launch_path": "/debug.html",
+    "icons": {
+        "128": "/assets/biblez128.png"
+    },
+    "developer": {
+        "name": "zefanjas",
+        "url": "http://zefanjas.de"
+    },
+    "default_locale": "en",
+    "type": "privileged",
+    "permissions": {
+        "systemXHR": {
+            "description": "Required to download CrossWire's bible modules"
+        }
     }
-  }
 }

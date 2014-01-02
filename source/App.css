@@ -73,6 +73,11 @@
     margin-left: 10px;
 }
 
+.active-verse {
+    background-color: yellow;
+    transition: background-color 500ms linear;
+}
+
 /* MODULE MANAGER */
 
 .item {

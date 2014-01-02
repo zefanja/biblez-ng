@@ -109,7 +109,7 @@ enyo.kind({
     components:[
         {kind: "enyo.FittableRows", fit: true, components: [
             {name: "fontSlider", kind: "onyx.Slider", value: 50, onChange: "sliderChanged", classes: "font-slider"},
-            {kind: "onyx.PickerDecorator", classes: "font-selector", onSelect: "fontSelected", components: [
+            {name: "fontSelector", kind: "onyx.PickerDecorator", classes: "font-selector", onSelect: "fontSelected", components: [
                 {}, //{kind: "onyx.Button", content: $L("Select Font")},
                 {kind: "onyx.Picker", components: [
                     {content: $L("Default"), name: "default", active: true},
@@ -121,6 +121,12 @@ enyo.kind({
             ]}
         ]}
     ],
+
+    rendered: function () {
+        this.inherited(arguments);
+        if(enyo.platform.firefoxOS)
+            this.$.fontSelector.hide();
+    },
 
     sliderChanged: function (inSender, inEvent) {
         if(inSender.value < 10) {
