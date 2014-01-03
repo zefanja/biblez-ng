@@ -133,6 +133,7 @@ enyo.kind({
                 if(this.settings.history)
                     this.history = this.settings.history;
             } else {
+                console.log(inError);
                 this.handleError("Couldn't load settings!");
             }
         }));
@@ -215,7 +216,7 @@ enyo.kind({
         if (!isNaN(inEvent.originator.index)) {
             this.currentModule = this.modules[inEvent.originator.index];
             this.settings["lastModule"] = this.currentModule.modKey;
-            api.putSetting("lastModule", this.currentModule.modKey);
+            //api.putSetting("lastModule", this.currentModule.modKey);
             this.renderModuleMenu();
         }
     },
@@ -247,9 +248,9 @@ enyo.kind({
         }
 
         //Persist current passage
-        this.settings["lastRead"] = this.currentPassage;
         this.addToHistory(this.currentPassage.osis);
-        api.putSetting("lastRead", this.currentPassage);
+        this.settings["lastRead"] = this.currentPassage;
+        api.put(this.settings);
 
         this.$.btnPassage.setContent(this.currentPassage.label);
         //Adjust the TB Icons
@@ -300,7 +301,8 @@ enyo.kind({
             }
         }
         this.history.unshift({osisRef: inOsis});
-        api.putSetting("history", this.history);
+        this.settings["history"] = this.history;
+        //api.putSetting("history", this.history);
     },
 
     handleUserData: function (inOsis) {

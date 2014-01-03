@@ -18,7 +18,7 @@ var api = {
             var self = this;
             this.db = new this.store({
                 storeName: "biblez",
-                dbVersion: 3,
+                dbVersion: 4,
                 onStoreReady: function() {
                     //console.log("isInitialized", self.isInitialized);
                     self.isInitialized = true;
@@ -214,6 +214,7 @@ var api = {
                 if(inCallback) inCallback(null, inObject);
             },
             function (inError) {
+                console.log(inError);
                 if(inCallback) inCallback(inError);
             }
         );

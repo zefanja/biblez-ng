@@ -83,7 +83,7 @@ enyo.kind({
             this.$.noData.show();
             if(this.section === "bookmarks")
                 this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
-            else if(this.section === "note")
+            else if(this.section === "notes")
                 this.$.noData.setContent($L("No Notes.") + " " + $L("Tap on a verse number to add one."));
             else if(this.section === "highlights")
                 this.$.noData.setContent($L("No Highlights.") + " " + $L("Tap on a verse number to add one."));

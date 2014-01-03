@@ -39,6 +39,7 @@ enyo.kind({
                         {name: "detailsName", classes: "title"},
                         //{kind: "onyx.ProgressBar", name: "progressBar", progress: 0, showing: false, showStripes: false},
                         {kind: "onyx.Button", ontap: "installModule", name: "btnInstall", classes: "onyx-affirmative", content: $L("Install Module"), style: "margin-left: 10px;"},
+                        {kind: "onyx.Button", ontap: "removeModule", name: "btnRemove", showing: false, classes: "onyx-negative", content: $L("Remove Module"), style: "margin-left: 10px;"},
                         {name: "detailsDescription", allowHtml: true, classes: "nice-padding"}
                     ]}
                 ]}
@@ -59,6 +60,7 @@ enyo.kind({
     modules: [],
     langModules: [],
     currentModule: null,
+    installedModules: [],
 
     start: function () {
         if (!this.started) {
@@ -71,7 +73,17 @@ enyo.kind({
                     this.setupRepoPicker(inData.repos, inData.currentRepo);
             }));
         }
+        this.getInstalledModules();
         this.started = true;
+    },
+
+    getInstalledModules: function () {
+        sword.moduleMgr.getModules(enyo.bind(this, function (inError, inModules) {
+            //console.log(inModules);
+            if(!inError && inModules.length !== 0) {
+                this.installedModules = inModules;
+            }
+        }));
     },
 
     handleBack: function() {
@@ -222,31 +234,53 @@ enyo.kind({
         if(enyo.Panels.isScreenNarrow()) {
             this.$.panel.next();
         }
+        this.$.btnInstall.show();
+        this.$.btnRemove.hide();
+        this.currentModule = this.langModules[inEvent.index];
+        this.installedModules.forEach(enyo.bind(this, function(mod) {
+            if(mod.modKey === this.currentModule.moduleKey) {
+                this.$.btnInstall.hide();
+                this.$.btnRemove.show();
+            }
+        }));
         this.$.detailsContainer.show();
-        var data = this.langModules[inEvent.index];
-        this.currentModule = data;
-        this.$.detailsName.setContent(data.Description);
-        this.$.detailsDescription.setContent(data.About.replace(/\\par/g, "<br>"));
+        this.$.detailsName.setContent(this.currentModule.Description);
+        this.$.detailsDescription.setContent(this.currentModule.About.replace(/\\par/g, "<br>"));
     },
 
     installModule: function (inSender, inEvent) {
-        console.log(this.currentModule.url);
+        //console.log(this.currentModule.url);
         this.$.btnInstall.setDisabled(true);
         this.$.progressBar.show();
         this.$.bottomTB.render();
         sword.installMgr.installModule(this.currentModule.url, enyo.bind(this, function (inError, inModule) {
             if (!inError) {
                 this.doInstalled();
+                this.getInstalledModules();
             } else {
-                this.handleError((inError.message) ? inError.message : inError);
+                this.handleError(inError);
             }
             //console.log(inError, inModule);
             this.$.progressBar.hide();
             this.$.progressBar.setProgress(0);
             this.$.btnInstall.setDisabled(false);
+            this.$.btnInstall.hide();
+            this.$.btnRemove.show();
         }),
         enyo.bind(this, function (inEvent) {
             this.$.progressBar.animateProgressTo(inEvent.loaded/inEvent.total*100);
+        }));
+    },
+
+    removeModule: function (inSender, inEvent) {
+        sword.installMgr.removeModule(this.currentModule.moduleKey, enyo.bind(this, function (inError) {
+            if(!inError) {
+                this.doInstalled();
+                this.$.btnInstall.show();
+                this.$.btnRemove.hide();
+            } else {
+                this.handleError(inError);
+            }
         }));
     },
 
