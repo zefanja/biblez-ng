@@ -39,19 +39,19 @@ enyo.kind({
         return true;
     },
 
+    updateSection: function (inSection) {
+        if(inSection)
+            this.section = inSection;
+        this.sectionChanged();
+    },
+
     sectionChanged: function (inSender, inEvent) {
         if (this.section === "bookmarks") {
             this.$.rbBm.setActive(true);
             api.getAllBookmarks(enyo.bind(this, function (inError, inData) {
                 if(!inError) {
                     this.data = inData;
-                    this.$.dataList.setCount(this.data.length);
-                    if(this.data.length === 0) {
-                        this.$.noData.show();
-                        this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
-                    } else
-                        this.$.noData.hide();
-                    this.$.dataList.refresh();
+                    this.updateList();
                 } else
                     this.handleError(inError);
             }));
@@ -60,12 +60,7 @@ enyo.kind({
             api.getAllNotes(enyo.bind(this, function (inError, inData) {
                 if(!inError) {
                     this.data = inData;
-                    this.$.dataList.setCount(this.data.length);
-                    if(this.data.length === 0) {
-                        this.$.noData.show();
-                        this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
-                    } else
-                        this.$.noData.hide();
+                    this.updateList();
                     this.$.dataList.refresh();
                 } else
                     this.handleError(inError);
@@ -75,17 +70,27 @@ enyo.kind({
             api.getAllHighlights(enyo.bind(this, function (inError, inData) {
                 if(!inError) {
                     this.data = inData;
-                    if(this.data.length === 0) {
-                        this.$.noData.show();
-                        this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
-                    } else
-                        this.$.noData.hide();
-                    this.$.dataList.setCount(this.data.length);
-                    this.$.dataList.refresh();
+                    this.updateList();
                 } else
                     this.handleError(inError);
             }));
         }
+    },
+
+    updateList: function () {
+        this.$.dataList.setCount(this.data.length);
+        if(this.data.length === 0) {
+            this.$.noData.show();
+            if(this.section === "bookmarks")
+                this.$.noData.setContent($L("No Bookmarks.") + " " + $L("Tap on a verse number to add one."));
+            else if(this.section === "note")
+                this.$.noData.setContent($L("No Notes.") + " " + $L("Tap on a verse number to add one."));
+            else if(this.section === "highlights")
+                this.$.noData.setContent($L("No Highlights.") + " " + $L("Tap on a verse number to add one."));
+        } else
+            this.$.noData.hide();
+        this.$.dataList.refresh();
+        this.$.dataList.reflow();
     },
 
     setupItem: function(inSender, inEvent) {

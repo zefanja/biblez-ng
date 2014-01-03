@@ -103,7 +103,7 @@ enyo.kind({
     },
 
     openDataView: function (inSender, inEvent) {
-        this.$.dataView.setSection(inEvent.section);
+        this.$.dataView.updateSection(inEvent.section);
         this.$.panel.setIndex(6);
     },
 

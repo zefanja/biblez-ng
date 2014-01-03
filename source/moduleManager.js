@@ -15,6 +15,7 @@ enyo.kind({
         ]},
         {name: "panel", arrangerKind: "CollapsingArranger", fit: true, kind: "Panels", classes: "app-panels", components: [
             {name: "panelLang", kind: "enyo.FittableRows", components: [
+                {classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
                 {name: "langList", kind: "List", fit: true, touch: true, onSetupItem: "setupLangItem", components: [
                     {classes: "item", ontap: "handleLanguage", components: [
                         {kind: "enyo.FittableColumns", components: [
@@ -61,7 +62,8 @@ enyo.kind({
 
     start: function () {
         if (!this.started) {
-            this.$.scrim.show();
+            //this.$.scrim.show();
+            this.$.spinner.show();
             api.get("repos", enyo.bind(this, function (inError, inData) {
                 if(!inData)
                     this.getRepos();
@@ -83,10 +85,14 @@ enyo.kind({
 
     handleRepoChange: function (inSender, inEvent) {
         this.$.detailsContainer.hide();
-        this.$.scrim.show();
+
         this.$.modList.setCount(0);
         this.$.modList.refresh();
+        this.$.langList.setCount(0);
+        this.$.langList.refresh();
+        this.$.spinner.show();
         this.$.panel.setIndex(0);
+
         api.get("repos", enyo.bind(this, function(inError, inRepos) {
             if(!inError) {
                 inRepos["currentRepo"] = this.repos[inEvent.selected.index];
@@ -94,6 +100,7 @@ enyo.kind({
             } else
                 this.handleError(inError);
         }));
+        //console.log(inEvent.selected.index);
         this.getRemoteModules(this.repos[inEvent.selected.index]);
     },
 
@@ -137,16 +144,19 @@ enyo.kind({
 
     getRemoteModules: function (inRepo) {
         //console.log(inRepo);
-        api.get("currentModules", enyo.bind(this, function (inError, currentModules) {
+        api.get("downloadedModules", enyo.bind(this, function (inError, allModules) {
+            //console.log(inRepo, allModules, this.repos);
             if(!inError) {
-                if(currentModules && inRepo.name === currentModules.name) {
-                    this.modules = currentModules.modules;
+                if(allModules && allModules.hasOwnProperty(inRepo.name.replace(" ", ""))) {
+                    this.modules = allModules[inRepo.name.replace(" ", "")].modules;
                     this.prepareLangList(this.modules);
                 } else {
                     sword.installMgr.getModules(inRepo, enyo.bind(this, function (inError, inModules) {
                         //enyo.log(inError, inModules, inModules.length);
                         if(!inError) {
-                            api.put({id: "currentModules", modules: inModules, name: inRepo.name}, enyo.bind(this, function (inError, inId) {
+                            if(!allModules) allModules = {id: "downloadedModules"};
+                            allModules[inRepo.name.replace(" ", "")] = {modules: inModules, name: inRepo.name};
+                            api.put(allModules, enyo.bind(this, function (inError, inId) {
                                 if(inError)
                                     this.handleError(inError);
                             }));
@@ -165,6 +175,7 @@ enyo.kind({
     },
 
     prepareLangList: function (inModules) {
+        this.$.spinner.hide();
         this.lang = [];
         inModules.forEach(enyo.bind(this, function(module, idx) {
             //console.log(module.Lang, inModules[idx+1].Lang);
@@ -174,9 +185,11 @@ enyo.kind({
                 this.lang.push({lang: module.Lang});
             }
         }));
+        this.$.panelLang.reflow();
         this.$.langList.setCount(this.lang.length);
         this.$.langList.refresh();
-        this.$.scrim.hide();
+
+
     },
 
     setupLangItem: function(inSender, inEvent) {

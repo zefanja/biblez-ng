@@ -24,7 +24,7 @@ enyo.kind({
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
             {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
         ]},
-        {kind: "onyx.MoreToolbar", classes: "main-toolbar", name: "topTB", components: [
+        {kind: "onyx.MoreToolbar", showing: false, classes: "main-toolbar", name: "topTB", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
                 {kind: "onyx.Menu", maxHeight: "300", name: "moduleMenu"}
@@ -166,6 +166,7 @@ enyo.kind({
                     this.$.firstStart.show();
                     this.$.mainPanel.setIndex(5);
                 }
+                this.reflow();
             } else {
                 this.handleError(inError);
             }

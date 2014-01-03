@@ -53,7 +53,7 @@ enyo.kind({
     toggleLinebreak: function (inSender, inEvent) {
         api.putSetting("linebreak", inSender.getValue(), enyo.bind(this, function (inError, inId) {
             if(!inError)
-                this.doChange({setting: "linebreak", value: true});
+                this.doChange({setting: "linebreak", value: inSender.getValue()});
         }));
     },
 

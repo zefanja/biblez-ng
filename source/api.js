@@ -13,7 +13,7 @@ var api = {
     wrapper: function (inCallback) {
         //console.log("isInitialized...", this.isInitialized);
         if (this.isInitialized) {
-            inCallback(null, this.db);
+            if(inCallback) inCallback(null, this.db);
         } else {
             var self = this;
             this.db = new this.store({
@@ -35,7 +35,7 @@ var api = {
     bmWrapper: function (inCallback) {
         //console.log("isInitialized...", this.isInitialized);
         if (this.isBmInitialized) {
-            inCallback(null, this.bmStore);
+            if(inCallback) inCallback(null, this.bmStore);
         } else {
             var self = this;
             this.bmStore = new this.store({
@@ -62,7 +62,7 @@ var api = {
     hlWrapper: function (inCallback) {
         //console.log("isInitialized...", this.isHlInitialized);
         if (this.isHlInitialized) {
-            inCallback(null, this.hlStore);
+            if(inCallback) inCallback(null, this.hlStore);
         } else {
             var self = this;
             this.hlStore = new this.store({
@@ -88,7 +88,7 @@ var api = {
     noteWrapper: function (inCallback) {
         //console.log("isInitialized...", this.isHlInitialized);
         if (this.isNoteInitialized) {
-            inCallback(null, this.noteStore);
+            if(inCallback) inCallback(null, this.noteStore);
         } else {
             var self = this;
             this.noteStore = new this.store({
@@ -127,7 +127,7 @@ var api = {
     put: function (inObject, inCallback) {
         this.wrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._put(inDB, inObject, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
@@ -143,12 +143,12 @@ var api = {
                                 inOsisObject["bookmarkId"] = inId;
                                 this.put(inOsisObject, inCallback);
                             } else
-                                inCallback(inError);
+                                if(inCallback) inCallback(inError);
                         }));
                     else
-                        inCallback(inError);
+                        if(inCallback) inCallback(inError);
                 }));
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
@@ -164,12 +164,12 @@ var api = {
                                 inOsisObject["highlightId"] = inId;
                                 this.put(inOsisObject, inCallback);
                             } else
-                                inCallback(inError);
+                                if(inCallback) inCallback(inError);
                         }));
                     else
-                        inCallback(inError);
+                        if(inCallback) inCallback(inError);
                 }));
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
@@ -188,10 +188,10 @@ var api = {
                                     inOsisObject["noteId"] = inId;
                                     this.put(inOsisObject, inCallback);
                                 } else
-                                    inCallback(inError);
+                                    if(inCallback) inCallback(inError);
                             }));
                         else
-                            inCallback(inError);
+                            if(inCallback) inCallback(inError);
                     }));
                 } else {
                     //Update an existing note
@@ -200,11 +200,11 @@ var api = {
                             inNoteObject["text"] = inObject["text"];
                             this._put(inDB, inNoteObject, inCallback);
                         } else {
-                            inCallback(inError);
+                            if(inCallback) inCallback(inError);
                         }
                     }));
                 }
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
@@ -244,70 +244,70 @@ var api = {
     _query: function(inDB, inOptions, inCallback) {
         //inOptions["onError"] = function (inError) {inCallback(inError);};
         inDB.query(function (inResults) {
-            inCallback(null, inResults);
+            if(inCallback) inCallback(null, inResults);
         }, inOptions);
     },
 
     get: function (inId, inCallback) {
         this.wrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._get(inDB, inId, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getAll: function(inCallback) {
         this.wrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._getAll(inDB, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getBookmark: function (inId, inCallback) {
         this.bmWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._get(inDB, inId, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getAllBookmarks: function (inCallback) {
         this.bmWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._query(inDB, {index: "osisRef"}, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getHighlights: function (inIds, inCallback) {
         this.hlWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._getBatch(inDB, inIds, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getAllHighlights: function (inCallback) {
         this.hlWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._query(inDB, {index: "osisRef"}, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getNote: function (inId, inCallback) {
         this.noteWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._get(inDB, inId, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getNotes: function (inIds, inCallback) {
         this.noteWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._getBatch(inDB, inIds, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     getAllNotes: function (inCallback) {
         this.noteWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._query(inDB, {index: "osisRef"}, inCallback);
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
@@ -327,7 +327,7 @@ var api = {
                     if(z === inVMax) inCallback(null, userData);
                     else z++;
                 } else
-                    inCallback(inError);
+                    if(inCallback) inCallback(inError);
             });
         }
     },
@@ -354,14 +354,14 @@ var api = {
                                     delete inOsisObject["bookmarkId"];
                                     this.put(inOsisObject, inCallback);
                                 } else
-                                    inCallback({message: "api.removeBookmark: Couldn't remove bookmarkId from osisObject"});
+                                    if(inCallback) inCallback({message: "api.removeBookmark: Couldn't remove bookmarkId from osisObject"});
                             } else
-                                inCallback(inError);
+                                if(inCallback) inCallback(inError);
                         }));
                     else
-                        inCallback(inError);
+                        if(inCallback) inCallback(inError);
                 }));
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
@@ -376,14 +376,14 @@ var api = {
                                     delete inOsisObject["highlightId"];
                                     this.put(inOsisObject, inCallback);
                                 } else
-                                    inCallback({message: "api.removeHighlight: Couldn't remove highlightId from osisObject"});
+                                    if(inCallback) inCallback({message: "api.removeHighlight: Couldn't remove highlightId from osisObject"});
                             } else
-                                inCallback(inError);
+                                if(inCallback) inCallback(inError);
                         }));
                     else
-                        inCallback(inError);
+                        if(inCallback) inCallback(inError);
                 }));
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
@@ -398,24 +398,25 @@ var api = {
                                     delete inOsisObject["noteId"];
                                     this.put(inOsisObject, inCallback);
                                 } else
-                                    inCallback({message: "api.removeHighlight: Couldn't remove noteId from osisObject"});
+                                    if(inCallback) inCallback({message: "api.removeHighlight: Couldn't remove noteId from osisObject"});
                             } else
-                                inCallback(inError);
+                                if(inCallback) inCallback(inError);
                         }));
                     else
-                        inCallback(inError);
+                        if(inCallback) inCallback(inError);
                 }));
-            else inCallback(inError);
+            else if(inCallback) inCallback(inError);
         }));
     },
 
     putSetting: function (inKey, inValue, inCallback) {
         this.get("settings", enyo.bind(this, function (inError, inSettings) {
             if(!inError) {
+                if(!inSettings) inSettings = {id: "settings"};
                 inSettings[inKey] = inValue;
                 this.put(inSettings, inCallback);
             } else {
-                inCallback(inError);
+                if(inCallback) inCallback(inError);
             }
         }));
     },
