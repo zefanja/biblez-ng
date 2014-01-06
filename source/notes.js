@@ -74,7 +74,8 @@ enyo.kind({
     },
 
     handleBack: function() {
-        if(this.$.noteInput.getValue() !== "" || this.$.noteInput.getValue() !== " ") {
+        if(this.$.noteInput.getValue() !== "") {
+            console.log(this.$.noteInput.getValue());
             this.updateNote();
             this.$.noteInput.setValue(" ");
         }
