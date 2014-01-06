@@ -36,7 +36,7 @@ enyo.kind({
     },
 
     handlePanels: function (inSender, inEvent) {
-        if(inEvent.toIndex === 1 && !enyo.platform.firefox) {
+        if(inEvent.toIndex === 1 && enyo.platform.firefoxOS) {
             this.$.moduleManager.start();
         }
         return true;
@@ -54,7 +54,7 @@ enyo.kind({
     },
 
     openModuleManager: function (inSender, inEvent) {
-        if(enyo.platform.firefox)
+        if(!enyo.platform.firefoxOS)
             this.$.panel.setIndex(3);
         else {
             this.$.panel.setIndex(1);
