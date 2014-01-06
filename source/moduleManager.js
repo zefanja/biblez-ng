@@ -117,21 +117,26 @@ enyo.kind({
     },
 
     getRepos: function () {
-        sword.installMgr.getRepositories(enyo.bind(this, function (inError, inRepos) {
-            if (!inError) {
-                api.put({id: "repos", repos: inRepos, lastRepoUpdate: {time: new Date().getTime()}},
-                    enyo.bind(this, function (inError, inId) {
-                        if(!inError)
-                            this.setupRepoPicker(inRepos);
-                        else
-                            this.handleError(inError);
-                    })
-                );
+        if(navigator.onLine)
+            sword.installMgr.getRepositories(enyo.bind(this, function (inError, inRepos) {
+                if (!inError) {
+                    api.put({id: "repos", repos: inRepos, lastRepoUpdate: {time: new Date().getTime()}},
+                        enyo.bind(this, function (inError, inId) {
+                            if(!inError)
+                                this.setupRepoPicker(inRepos);
+                            else
+                                this.handleError(inError);
+                        })
+                    );
 
-            } else {
-                this.handleError(inError);
-            }
-        }));
+                } else {
+                    this.handleError(inError);
+                }
+            }));
+        else {
+            this.$.spinner.stop();
+            this.handleError({message: $L("You need an internet connection to download modules!")});
+        }
     },
 
     setupRepoPicker: function (inRepos, currentRepo) {
@@ -163,22 +168,27 @@ enyo.kind({
                     this.modules = allModules[inRepo.name.replace(" ", "")].modules;
                     this.prepareLangList(this.modules);
                 } else {
-                    sword.installMgr.getModules(inRepo, enyo.bind(this, function (inError, inModules) {
-                        //enyo.log(inError, inModules, inModules.length);
-                        if(!inError) {
-                            if(!allModules) allModules = {id: "downloadedModules"};
-                            allModules[inRepo.name.replace(" ", "")] = {modules: inModules, name: inRepo.name};
-                            api.put(allModules, enyo.bind(this, function (inError, inId) {
-                                if(inError)
-                                    this.handleError(inError);
-                            }));
-                            this.modules = inModules;
-                            this.prepareLangList(this.modules);
+                    if (navigator.onLine)
+                        sword.installMgr.getModules(inRepo, enyo.bind(this, function (inError, inModules) {
+                            //enyo.log(inError, inModules, inModules.length);
+                            if(!inError) {
+                                if(!allModules) allModules = {id: "downloadedModules"};
+                                allModules[inRepo.name.replace(" ", "")] = {modules: inModules, name: inRepo.name};
+                                api.put(allModules, enyo.bind(this, function (inError, inId) {
+                                    if(inError)
+                                        this.handleError(inError);
+                                }));
+                                this.modules = inModules;
+                                this.prepareLangList(this.modules);
 
-                        } else {
-                            this.handleError((inError.message) ? inError.message : inError);
-                        }
-                    }));
+                            } else {
+                                this.handleError((inError.message) ? inError.message : inError);
+                            }
+                        }));
+                    else {
+                        this.$.spinner.stop();
+                        this.handleError({message: $L("You need an internet connection to download modules!")});
+                    }
                 }
             } else
                 this.handleError(inError);

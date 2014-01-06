@@ -15,11 +15,10 @@ enyo.kind({
         passage: ""
     },
     components:[
-        {kind: "Signals", onOrientationChange: "handleOrientation"},
+        //{kind: "Signals", onOrientationChange: "handleOrientation"},
         {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark", onHighlight: "handleHighlight", onNoteTap: "handleNoteTap"},
         {name: "fontMenu", kind: "biblez.fontMenu", onFontSize: "handleFontSize", onFont: "handleFont"},
         {name: "notePopup", kind: "biblez.notePopup", onEdit: "handleNoteTap"},
-        //{kind: "Signals", onbeforeunload: "handleUnload"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
             {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
@@ -175,15 +174,15 @@ enyo.kind({
     },
 
     renderModuleMenu: function (inModules) {
+        var lastModule = null;
         if(!inModules)
             inModules = this.modules;
-        if(this.settings)
-            var lastModule = this.settings.lastModule;
+        if(this.settings.lastModule)
+            lastModule = this.settings.lastModule;
         this.$.moduleMenu.destroyClientControls();
         var mods = [];
         this.modules.forEach(enyo.bind(this, function (mod, idx) {
             if ((lastModule && lastModule === mod.modKey)) {
-                //mods.push({content: mod.config.moduleKey, index: idx, active: true, style: "background-color: lightblue"});
                 this.$.btnModules.setContent(lastModule);
                 mods.push({active: true, components: [
                     {content: mod.config.moduleKey, index: idx},
@@ -366,7 +365,6 @@ enyo.kind({
     },
 
     handleNoteTap: function (inSender, inEvent) {
-        //console.log(inEvent);
         if (this.userData[inEvent.osisRef] && this.userData[inEvent.osisRef].noteId !== undefined)
             inEvent["noteId"] = this.userData[inEvent.osisRef].noteId;
         this.doOpenNotes(inEvent);

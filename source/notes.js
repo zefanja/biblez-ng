@@ -36,11 +36,11 @@ enyo.kind({
     },
 
     osisRefChanged: function (inSender, inEvent) {
+        this.$.noteInput.setValue("");
         this.$.label.setContent($L("Notes for") + " " + api.formatOsis(this.osisRef));
     },
 
     noteIdChanged: function () {
-        this.$.noteInput.setValue("");
         if (this.noteId !== null) {
             api.getNote(this.noteId, enyo.bind(this, function (inError, inNote) {
                 if(!inError) {
@@ -74,8 +74,10 @@ enyo.kind({
     },
 
     handleBack: function() {
-        if(this.$.noteInput.getValue() !== "")
+        if(this.$.noteInput.getValue() !== "" || this.$.noteInput.getValue() !== " ") {
             this.updateNote();
+            this.$.noteInput.setValue(" ");
+        }
         this.doBack();
     },
 

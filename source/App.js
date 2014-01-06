@@ -93,7 +93,6 @@ enyo.kind({
     openNotes: function (inSender, inEvent) {
         this.$.notes.setOsisRef(inEvent.osisRef);
         this.$.notes.setNoteId(inEvent.noteId);
-        this.$.notes.setFocus();
         this.$.panel.setIndex(5);
     },
 
