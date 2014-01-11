@@ -190,7 +190,6 @@ enyo.kind({
 enyo.kind({
     name: "biblez.notePopup",
     kind: "onyx.Popup",
-    classes: "note-popup",
     events: {
         onEdit: ""
     },
@@ -199,7 +198,7 @@ enyo.kind({
         text: ""
     },
     components:[
-        {kind: "enyo.Scroller", touch: true, fit: true, components: [
+        {kind: "enyo.Scroller", touch: true, fit: true, classes: "note-popup", components: [
             {name: "noteText", content: "", allowHtml: true, ontap: "handleTap"}
         ]}
     ],
@@ -210,5 +209,24 @@ enyo.kind({
 
     handleTap: function (inSender, inEvent) {
         this.doEdit({osisRef: this.osisRef});
+    }
+});
+
+// FOOTNOTE VIEW POPUP //
+enyo.kind({
+    name: "biblez.footnotePopup",
+    kind: "onyx.Popup",
+    floating: true,
+    published: {
+        text: ""
+    },
+    components:[
+        {kind: "enyo.Scroller", touch: true, fit: true, classes: "note-popup", components: [
+            {name: "noteText", content: "", allowHtml: true}
+        ]}
+    ],
+
+    textChanged: function () {
+        this.$.noteText.setContent(this.text);
     }
 });

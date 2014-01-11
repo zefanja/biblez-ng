@@ -19,6 +19,7 @@ enyo.kind({
         {kind: "biblez.versePopup", name: "versePopup", onBookmark: "handleBookmark", onHighlight: "handleHighlight", onNoteTap: "handleNoteTap"},
         {name: "fontMenu", kind: "biblez.fontMenu", onFontSize: "handleFontSize", onFont: "handleFont"},
         {name: "notePopup", kind: "biblez.notePopup", onEdit: "handleNoteTap"},
+        {name: "footnotePopup", kind: "biblez.footnotePopup"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
             {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
@@ -106,6 +107,7 @@ enyo.kind({
     history: [],
     panelIndex: 2,
     settings: {id: "settings"},
+    footnotes: {},
 
     create: function () {
         this.inherited(arguments);
@@ -142,7 +144,7 @@ enyo.kind({
         api.get("settings", enyo.bind(this, function(inError, inSettings) {
             if(!inError) {
                 this.settings = (inSettings) ? inSettings: this.settings;
-                if(inEvent.setting === "linebreak")
+                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings")
                     this.handlePassage();
             } else {
                 this.handleError("Couldn't load settings!");
@@ -254,24 +256,31 @@ enyo.kind({
         this.$.btnPassage.setContent(this.currentPassage.label);
         //Adjust the TB Icons
         this.$.topTB.reflow();
-
-        this.currentModule.renderText(this.currentPassage.osis, {oneVersePerLine: this.settings.linebreak ? this.settings.linebreak : false}, enyo.bind(this, function (inError, inText) {
-            this.$.spinner.stop();
-            if(!inError) {
-                this.$.main.setContent(inText);
-                if (verseNumber < 2)
-                    this.$.verseScroller.scrollToTop();
-                else {
-                    var e = enyo.dom.byId(this.currentPassage.osis+"."+verseNumber);
-                    this.$.verseScroller.scrollToNode(e);
-                    e.style.backgroundColor = "rgba(210,105,30,0.25)";
-                    //e.className = e.className + " active-verse";
-                }
-                this.handleUserData(this.currentPassage.osis);
-                this.renderHistory();
-            } else
-                this.handleError(inError.message);
-        }));
+        this.currentModule.renderText(this.currentPassage.osis,
+            {
+                oneVersePerLine: this.settings.linebreak ? this.settings.linebreak : false,
+                footnotes: this.settings.footnotes ? this.settings.footnotes : false,
+                headings: this.settings.hasOwnProperty("headings") ? this.settings.headings : true,
+            },
+            enyo.bind(this, function (inError, inResult) {
+                this.$.spinner.stop();
+                if(!inError) {
+                    this.footnotes = inResult.footnotes;
+                    this.$.main.setContent(inResult.text);
+                    if (verseNumber < 2)
+                        this.$.verseScroller.scrollToTop();
+                    else {
+                        var e = enyo.dom.byId(this.currentPassage.osis+"."+verseNumber);
+                        this.$.verseScroller.scrollToNode(e);
+                        e.style.backgroundColor = "rgba(210,105,30,0.25)";
+                        //e.className = e.className + " active-verse";
+                    }
+                    this.handleUserData(this.currentPassage.osis);
+                    this.renderHistory();
+                } else
+                    this.handleError(inError.message);
+            })
+        );
     },
 
     renderHistory: function (inSender, inEvent) {
@@ -469,6 +478,24 @@ enyo.kind({
                 } else
                     this.handleError(inError);
             }));
+        } else if (attributes.type === "footnote") {
+            this.footnotes[attributes.osisRef].forEach(enyo.bind(this, function(item) {
+                if(item.n === attributes.n)
+                    this.$.footnotePopup.setText(item.note);
+            }));
+            this.$.footnotePopup.showAtEvent(inEvent);
+        } else if (attributes.type === "crossReference") {
+            this.currentModule.renderText(attributes.osisRef, {oneVersePerLine: false, footnotes: false, headings: false},
+                enyo.bind(this, function (inError, inResult) {
+                    if(!inError) {
+                        this.$.footnotePopup.setText(inResult.text);
+                        this.$.footnotePopup.showAtEvent(inEvent);
+                    } else {
+                        this.$.footnotePopup.hide();
+                        this.handleError(inError.message);
+                    }
+                })
+            );
         }
         return true;
     },

@@ -78,6 +78,19 @@
     transition: background-color 500ms linear;
 }
 
+.sword-cross-reference {
+    font-size: 0.8em;
+}
+
+.sword-cross-reference a {
+    text-decoration: none;
+}
+
+.sword-footnote {
+    text-decoration: none;
+
+}
+
 /* MODULE MANAGER */
 
 .item {
@@ -175,16 +188,6 @@
     color: #010101;
 }
 
-@media all and (max-width: 800px) {
-    .verse-number {
-        font-weight: bold;
-        font-size: 1.2em;
-        line-height: .9em;
-        text-decoration: none;
-        color: #010101;
-    }
-}
-
 h3, h1 {
     font-size: 1.3em;
 }
@@ -225,7 +228,8 @@ h3, h1 {
 }
 
 .note-popup {
-    max-width: 300px;
+    max-width: 500px;
+    max-height: 300px;
 }
 
 /* DATA VIEW */
@@ -246,4 +250,21 @@ h3, h1 {
 
 .main-toolbar {
     padding: 5px;
+}
+
+/* SMALL SCREENS */
+@media all and (max-width: 800px) {
+    .verse-number {
+        font-weight: bold;
+        font-size: 1.2em;
+        line-height: .9em;
+        text-decoration: none;
+        color: #010101;
+    }
+
+    .note-popup {
+        max-width: 300px;
+        max-height: 300px;
+    }
+
 }

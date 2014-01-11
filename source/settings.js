@@ -18,8 +18,17 @@ enyo.kind({
                     {kind: "onyx.GroupboxHeader", content: $L("General")},
                     {kind: "enyo.FittableColumns", classes: "settings-row", components: [
                         {content: $L("Enable Linebreak"), classes: "settings-item", fit: true},
-                        {name: "tbLinebreak", kind: "onyx.ToggleButton", onChange: "toggleLinebreak"}
+                        {name: "tbLinebreak", key: "linebreak", kind: "onyx.ToggleButton", onChange: "handleSettings"}
+                    ]},
+                    {kind: "enyo.FittableColumns", classes: "settings-row", components: [
+                        {content: $L("Enable Headings"), classes: "settings-item", fit: true},
+                        {name: "tbHeadings", key: "headings", kind: "onyx.ToggleButton", onChange: "handleSettings"}
+                    ]},
+                    {kind: "enyo.FittableColumns", classes: "settings-row", components: [
+                        {content: $L("Enable Footnotes"), classes: "settings-item", fit: true},
+                        {name: "tbFootnote", key: "footnotes", kind: "onyx.ToggleButton", onChange: "handleSettings"}
                     ]}
+
                 ]},
                 {tag: "br"},
                 /*{kind: "onyx.Groupbox", components: [
@@ -42,18 +51,22 @@ enyo.kind({
         api.get("settings", enyo.bind(this, function(inError, inSettings) {
             if(!inError) {
                 if(inSettings) {
-                    this.$.tbLinebreak.value = inSettings.linebreak ? true : false;
+                    this.$.tbLinebreak.value = inSettings.hasOwnProperty("linebreak") ? inSettings.linebreak : false;
                     this.$.tbLinebreak.updateVisualState();
+                    this.$.tbHeadings.value = inSettings.hasOwnProperty("headings") ? inSettings.headings : true;
+                    this.$.tbHeadings.updateVisualState();
+                    this.$.tbFootnote.value = inSettings.hasOwnProperty("footnotes") ? inSettings.footnotes : false;
+                    this.$.tbFootnote.updateVisualState();
                 }
             }
         }));
 
     },
 
-    toggleLinebreak: function (inSender, inEvent) {
-        api.putSetting("linebreak", inSender.getValue(), enyo.bind(this, function (inError, inId) {
+    handleSettings: function (inSender, inEvent) {
+        api.putSetting(inSender.key, inSender.getValue(), enyo.bind(this, function (inError, inId) {
             if(!inError)
-                this.doChange({setting: "linebreak", value: inSender.getValue()});
+                this.doChange({setting: inSender.key, value: inSender.getValue()});
         }));
     },
 
