@@ -27,6 +27,10 @@ enyo.kind({
                     {kind: "enyo.FittableColumns", classes: "settings-row", components: [
                         {content: $L("Enable Footnotes"), classes: "settings-item", fit: true},
                         {name: "tbFootnote", key: "footnotes", kind: "onyx.ToggleButton", onChange: "handleSettings"}
+                    ]},
+                    {kind: "enyo.FittableColumns", classes: "settings-row", components: [
+                        {content: $L("Enable Cross-References"), classes: "settings-item", fit: true},
+                        {name: "tbCrossRef", key: "crossReferences", kind: "onyx.ToggleButton", onChange: "handleSettings"}
                     ]}
 
                 ]},
@@ -57,6 +61,8 @@ enyo.kind({
                     this.$.tbHeadings.updateVisualState();
                     this.$.tbFootnote.value = inSettings.hasOwnProperty("footnotes") ? inSettings.footnotes : false;
                     this.$.tbFootnote.updateVisualState();
+                    this.$.tbCrossRef.value = inSettings.hasOwnProperty("crossReferences") ? inSettings.crossReferences : false;
+                    this.$.tbCrossRef.updateVisualState();
                 }
             }
         }));

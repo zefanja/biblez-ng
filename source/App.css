@@ -232,6 +232,10 @@ h3, h1 {
     max-height: 300px;
 }
 
+.note-popup a {
+    color: #eee;
+}
+
 /* DATA VIEW */
 .data-view-back {
     position: absolute;

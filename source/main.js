@@ -144,7 +144,7 @@ enyo.kind({
         api.get("settings", enyo.bind(this, function(inError, inSettings) {
             if(!inError) {
                 this.settings = (inSettings) ? inSettings: this.settings;
-                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings")
+                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings" || inEvent.crossReferences === "headings")
                     this.handlePassage();
             } else {
                 this.handleError("Couldn't load settings!");
@@ -258,8 +258,9 @@ enyo.kind({
         this.$.topTB.reflow();
         this.currentModule.renderText(this.currentPassage.osis,
             {
-                oneVersePerLine: this.settings.linebreak ? this.settings.linebreak : false,
-                footnotes: this.settings.footnotes ? this.settings.footnotes : false,
+                oneVersePerLine: this.settings.linebreak ? true : false,
+                footnotes: this.settings.footnotes ? true : false,
+                crossReferences: this.settings.crossReferences ? true : false,
                 headings: this.settings.hasOwnProperty("headings") ? this.settings.headings : true,
             },
             enyo.bind(this, function (inError, inResult) {

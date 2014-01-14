@@ -222,11 +222,16 @@ enyo.kind({
     },
     components:[
         {kind: "enyo.Scroller", touch: true, fit: true, classes: "note-popup", components: [
-            {name: "noteText", content: "", allowHtml: true}
+            {name: "noteText", content: "", allowHtml: true, onclick: "handleTap"}
         ]}
     ],
 
     textChanged: function () {
         this.$.noteText.setContent(this.text);
+    },
+
+    handleTap: function (inSender, inEvent) {
+        inEvent.preventDefault();
+        return true;
     }
 });
