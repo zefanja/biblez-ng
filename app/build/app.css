@@ -394,12 +394,11 @@
 .enyo-panels-fit-narrow {
 }
 
-@media all and (max-width: 800px) {
-	.enyo-panels-fit-narrow > * {
-		min-width: 100%;
-		max-width: 100%;
-	}
+.enyo-panels-fit-narrow > * {
+	min-width: 100%;
+	max-width: 100%;
 }
+
 
 /* lib/layout/tree/source/Node.css */
 
@@ -1754,7 +1753,6 @@
 .background {
     background: url('../assets/oldPaper.png');
     background-size: 100%;
-
 }
 
 .app-panels > * {
@@ -1810,8 +1808,8 @@
 }
 
 .biblez-bc-popup {
-    height: 480px;
-    width: 495px;
+    height: 450px;
+    width: 465px;
 }
 
 .tb-button {
@@ -1867,15 +1865,16 @@
 
 /* BOOK CHAPTER SELECTOR */
 .bc-item {
-    height: 30px;
-    width: 45px;
-    margin: 3px;
-    /* border: 1px solid #ccc; */
+    /*
     padding: 5px 5px 5px 5px;
-    float: left;
+
     line-height: 30px;
-    text-align: center;
+    text-align: center;*/
+    height: 44px;
+    width: 47px;
+    margin: 3px;
     font-weight: bold;
+    float: left;
 }
 
 .books-ot {
@@ -1977,8 +1976,13 @@ h3, h1 {
 }
 
 .note-popup {
+    min-width: 200px;
     max-width: 500px;
     max-height: 300px;
+}
+
+.note-popup a {
+    color: #eee;
 }
 
 /* DATA VIEW */
