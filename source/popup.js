@@ -222,7 +222,7 @@ enyo.kind({
     },
     components:[
         {kind: "enyo.Scroller", touch: true, fit: true, classes: "note-popup", components: [
-            {name: "spinner", kind: "onyx.Spinner", showing: false},
+            {classes: "center", components: [{kind: "onyx.Spinner", showing: false, name: "spinner", classes: "center"}]},
             {name: "noteText", content: "", allowHtml: true, onclick: "handleTap"}
         ]}
     ],

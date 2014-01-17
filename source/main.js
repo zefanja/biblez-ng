@@ -486,6 +486,7 @@ enyo.kind({
             }));
             this.$.footnotePopup.showAtEvent(inEvent);
         } else if (attributes.type === "crossReference") {
+            this.$.footnotePopup.setText("");
             this.$.footnotePopup.showAtEvent(inEvent);
             this.$.footnotePopup.handleSpinner(true);
             this.currentModule.renderText(attributes.osisRef, {oneVersePerLine: false, footnotes: false, headings: false},
