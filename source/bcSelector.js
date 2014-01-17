@@ -10,7 +10,7 @@ enyo.kind({
         module: null
     },
     components: [
-        {name: "bcPanel", kind: "Panels", arrangerKind: "CardArranger", animate: false, fit: true, components: [
+        {name: "bcPanel", kind: "Panels", arrangerKind: "CardArranger", fit: true, animate: false, components: [
             {name: "bookPanel", kind: "enyo.FittableRows", components: [
                 {kind: "onyx.Toolbar", components: [
                     {kind: "onyx.IconButton", src: "assets/back.png", ontap: "doBack"},
@@ -18,7 +18,7 @@ enyo.kind({
                 ]},
                 {kind: "enyo.Scroller", fit: true, touch: true, components: [
                     {name: "bookRepeater", kind: "Repeater", count: 0, onSetupItem: "setBookItems", components: [
-                        {name: "bookItem", classes: "bc-item onyx-button", ontap: "handleBook"}
+                        {name: "bookItem", kind: "onyx.Button", classes: "bc-item", ontap: "handleBook"}
                     ]}
                 ]}
             ]},
@@ -29,7 +29,7 @@ enyo.kind({
                 ]},
                 {kind: "enyo.Scroller", fit: true, touch: true, components: [
                     {name: "chapterRepeater", kind: "Repeater", count: 0, onSetupItem: "setChapterItems", components: [
-                        {name: "chapterItem", classes: "bc-item onyx-button", ontap: "handleChapter"}
+                        {name: "chapterItem", kind: "onyx.Button", classes: "bc-item", ontap: "handleChapter"}
                     ]}
                 ]}
             ]}

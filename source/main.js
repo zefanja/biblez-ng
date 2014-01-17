@@ -144,7 +144,7 @@ enyo.kind({
         api.get("settings", enyo.bind(this, function(inError, inSettings) {
             if(!inError) {
                 this.settings = (inSettings) ? inSettings: this.settings;
-                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings" || inEvent.crossReferences === "headings")
+                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings" || inEvent.setting === "crossReferences")
                     this.handlePassage();
             } else {
                 this.handleError("Couldn't load settings!");
@@ -486,11 +486,13 @@ enyo.kind({
             }));
             this.$.footnotePopup.showAtEvent(inEvent);
         } else if (attributes.type === "crossReference") {
+            this.$.footnotePopup.showAtEvent(inEvent);
+            this.$.footnotePopup.handleSpinner(true);
             this.currentModule.renderText(attributes.osisRef, {oneVersePerLine: false, footnotes: false, headings: false},
                 enyo.bind(this, function (inError, inResult) {
                     if(!inError) {
                         this.$.footnotePopup.setText(inResult.text);
-                        this.$.footnotePopup.showAtEvent(inEvent);
+                        this.$.footnotePopup.handleSpinner(false);
                     } else {
                         this.$.footnotePopup.hide();
                         this.handleError(inError.message);

@@ -222,9 +222,17 @@ enyo.kind({
     },
     components:[
         {kind: "enyo.Scroller", touch: true, fit: true, classes: "note-popup", components: [
+            {name: "spinner", kind: "onyx.Spinner", showing: false},
             {name: "noteText", content: "", allowHtml: true, onclick: "handleTap"}
         ]}
     ],
+
+    handleSpinner: function (inShow) {
+        if(inShow)
+            this.$.spinner.show();
+        else
+            this.$.spinner.hide();
+    },
 
     textChanged: function () {
         this.$.noteText.setContent(this.text);

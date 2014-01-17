@@ -30,11 +30,6 @@ enyo.kind({
         ]}
     ],
 
-    rendered: function () {
-        this.inherited(arguments);
-        //this.$.panel.setIndex(1);
-    },
-
     handlePanels: function (inSender, inEvent) {
         if(inEvent.toIndex === 1 && enyo.platform.firefoxOS) {
             this.$.moduleManager.start();
@@ -44,7 +39,7 @@ enyo.kind({
     },
 
     handleBack: function (inSender, inEvent) {
-        this.$.panel.setIndex(0);
+        this.$.panel.selectPanelByName("main");
         return true;
     },
 
@@ -55,9 +50,9 @@ enyo.kind({
 
     openModuleManager: function (inSender, inEvent) {
         if(!enyo.platform.firefoxOS)
-            this.$.panel.setIndex(3);
+            this.$.panel.selectPanelByName("moduleManagerDesktop");
         else {
-            this.$.panel.setIndex(1);
+            this.$.panel.selectPanelByName("moduleManager");
             this.$.moduleManager.start();
         }
 
@@ -65,7 +60,7 @@ enyo.kind({
     },
 
     openSelector: function (inSender, inEvent) {
-        this.$.panel.setIndex(2);
+        this.$.panel.selectPanelByName("bcSelector");
         this.$.bcSelector.setPanel(0);
         return true;
     },
@@ -76,14 +71,14 @@ enyo.kind({
     },
 
     handlePassageSelect: function (inSender, inEvent) {
-        this.$.panel.setIndex(0);
+        this.$.panel.selectPanelByName("main");
         delete inEvent.originator;
         this.$.main.setPassage(inEvent);
     },
 
     openPreferences: function (inSender, inEvent) {
         this.$.settings.setSettings();
-        this.$.panel.setIndex(4);
+        this.$.panel.selectPanelByName("settings");
     },
 
     handleSettings: function (inSender, inEvent) {
@@ -93,7 +88,7 @@ enyo.kind({
     openNotes: function (inSender, inEvent) {
         this.$.notes.setOsisRef(inEvent.osisRef);
         this.$.notes.setNoteId(inEvent.noteId);
-        this.$.panel.setIndex(5);
+        this.$.panel.selectPanelByName("notes");
     },
 
     handleNote: function (inSender, inEvent) {
@@ -103,17 +98,17 @@ enyo.kind({
 
     openDataView: function (inSender, inEvent) {
         this.$.dataView.updateSection(inEvent.section);
-        this.$.panel.setIndex(6);
+        this.$.panel.selectPanelByName("dataView");
     },
 
     handleVerse: function (inSender, inEvent) {
         this.$.main.handlePassage(inEvent.osisRef);
-        this.$.panel.setIndex(0);
+        this.$.panel.selectPanelByName("main");
         return true;
     },
 
     openAbout: function (inSender, inEvent) {
-        this.$.panel.setIndex(7);
+        this.$.panel.selectPanelByName("about");
     }
 });
 
