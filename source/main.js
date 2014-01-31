@@ -144,7 +144,7 @@ enyo.kind({
         api.get("settings", enyo.bind(this, function(inError, inSettings) {
             if(!inError) {
                 this.settings = (inSettings) ? inSettings: this.settings;
-                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings" || inEvent.setting === "crossReferences")
+                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings" || inEvent.setting === "crossReferences" || inEvent.setting === "introductions" || inEvent.setting === "woc")
                     this.handlePassage();
             } else {
                 this.handleError("Couldn't load settings!");
@@ -261,7 +261,9 @@ enyo.kind({
                 oneVersePerLine: this.settings.linebreak ? true : false,
                 footnotes: this.settings.footnotes ? true : false,
                 crossReferences: this.settings.crossReferences ? true : false,
+                intro: this.settings.introductions ? true : false,
                 headings: this.settings.hasOwnProperty("headings") ? this.settings.headings : true,
+                wordsOfChristInRed: this.settings.woc ? true : false,
             },
             enyo.bind(this, function (inError, inResult) {
                 this.$.spinner.stop();
@@ -492,8 +494,10 @@ enyo.kind({
             this.currentModule.renderText(attributes.osisRef, {oneVersePerLine: false, footnotes: false, headings: false},
                 enyo.bind(this, function (inError, inResult) {
                     if(!inError) {
+                        this.$.footnotePopup.hide();
                         this.$.footnotePopup.setText(inResult.text);
                         this.$.footnotePopup.handleSpinner(false);
+                        this.$.footnotePopup.showAtEvent(inEvent);
                     } else {
                         this.$.footnotePopup.hide();
                         this.handleError(inError.message);

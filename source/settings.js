@@ -31,6 +31,14 @@ enyo.kind({
                     {kind: "enyo.FittableColumns", classes: "settings-row", components: [
                         {content: $L("Enable Cross-References"), classes: "settings-item", fit: true},
                         {name: "tbCrossRef", key: "crossReferences", kind: "onyx.ToggleButton", onChange: "handleSettings"}
+                    ]},
+                    {kind: "enyo.FittableColumns", classes: "settings-row", components: [
+                        {content: $L("Enable Words of Christ in Red"), classes: "settings-item", fit: true},
+                        {name: "tbWoc", key: "woc", kind: "onyx.ToggleButton", onChange: "handleSettings"}
+                    ]},
+                    {kind: "enyo.FittableColumns", classes: "settings-row", components: [
+                        {content: $L("Enable Introductions"), classes: "settings-item", fit: true},
+                        {name: "tbIntro", key: "introductions", kind: "onyx.ToggleButton", onChange: "handleSettings"}
                     ]}
 
                 ]},
@@ -63,6 +71,10 @@ enyo.kind({
                     this.$.tbFootnote.updateVisualState();
                     this.$.tbCrossRef.value = inSettings.hasOwnProperty("crossReferences") ? inSettings.crossReferences : false;
                     this.$.tbCrossRef.updateVisualState();
+                    this.$.tbIntro.value = inSettings.hasOwnProperty("introductions") ? inSettings.introductions : false;
+                    this.$.tbIntro.updateVisualState();
+                    this.$.tbWoc.value = inSettings.hasOwnProperty("woc") ? inSettings.woc : false;
+                    this.$.tbWoc.updateVisualState();
                 }
             }
         }));
