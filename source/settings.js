@@ -14,7 +14,7 @@ enyo.kind({
         ]},
         {kind: "enyo.Scroller", touch: true, fit: true, components: [
             {classes: "settings-container", components: [
-                {kind: "onyx.Groupbox", components: [
+                {name: "container", kind: "onyx.Groupbox", components: [
                     {kind: "onyx.GroupboxHeader", content: $L("General")},
                     {kind: "enyo.FittableColumns", classes: "settings-row", components: [
                         {content: $L("Enable Linebreak"), classes: "settings-item", fit: true},
@@ -54,6 +54,11 @@ enyo.kind({
 
         ]}
     ],
+
+    rendered: function () {
+        this.inherited(arguments);
+        this.$.container.resized();
+    },
 
     handleBack: function() {
         this.doBack();

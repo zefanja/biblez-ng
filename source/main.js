@@ -73,7 +73,7 @@ enyo.kind({
                 {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
             ]}*/
         ]},
-        {name: "mainPanel", kind: "Panels", fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+        {name: "mainPanel", kind: "Panels", index: 2, fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
             {},
             {kind: "FittableColumns", noStretch: true, components: [
                 {fit: true},
@@ -88,12 +88,12 @@ enyo.kind({
                 {fit: true}
             ]},
             {},
-            {name: "firstStart", classes: "center", style: "margin-top: 20px;", components: [
+            /*{name: "firstStart", classes: "center", style: "margin-top: 20px;", components: [
                 {tag: "img", src: "assets/biblez128.png", style: "margin: 20px;"},
                 {content: $L("You have no modules installed. Open the Module Manager to install one."), style: "font-weight: bold; margin-bottom: 20px;"},
                 {kind: "onyx.Button", classes: "onyx-affirmative", content: $L("Open Module Manager"), ontap: "doOpenModuleManager"}
             ]},
-            {}
+            {}*/
         ]},
     ],
 
@@ -113,7 +113,7 @@ enyo.kind({
         this.inherited(arguments);
         this.$.spinner.stop();
         this.startUp();
-        this.$.mainPanel.setIndexDirect(2);
+        //this.$.mainPanel.setIndexDirect(2);
     },
 
     startUp: function () {
@@ -156,17 +156,26 @@ enyo.kind({
         sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
             if (!inError) {
                 if(inModules.length !== 0) {
-                    this.$.mainPanel.setIndex(2);
+                    this.$.mainPanel.selectPanelByName("verseScroller");
                     this.$.mainPanel.draggable = true;
                     this.$.topTB.show();
                     this.modules = inModules;
                     this.renderModuleMenu(this.modules);
-                    this.$.firstStart.hide();
+                    if(this.$.firstStart) {
+                        this.$.firstStart.destroy();
+                        this.$.endPlaceholder.destroy();
+                    }
                 } else {
                     this.$.topTB.hide();
                     this.$.mainPanel.draggable = false;
-                    this.$.firstStart.show();
-                    this.$.mainPanel.setIndex(5);
+                    this.$.mainPanel.createComponent({name: "firstStart", classes: "center", style: "margin-top: 20px;", components: [
+                                                            {tag: "img", src: "assets/biblez128.png", style: "margin: 20px;"},
+                                                            {content: $L("You have no modules installed. Open the Module Manager to install one."), style: "font-weight: bold; margin-bottom: 20px;"},
+                                                            {kind: "onyx.Button", classes: "onyx-affirmative", content: $L("Open Module Manager"), ontap: "doOpenModuleManager"}
+                                                        ]}, {owner: this}).render();
+                    this.$.mainPanel.createComponent({name: "endPlaceholder"}, {owner: this}).render();
+                    this.$.mainPanel.selectPanelByName("firstStart");
+                    this.$.mainPanel.resized();
                 }
                 this.reflow();
             } else {
@@ -255,7 +264,7 @@ enyo.kind({
 
         this.$.btnPassage.setContent(this.currentPassage.label);
         //Adjust the TB Icons
-        this.$.topTB.reflow();
+        this.$.topTB.resized();
         this.currentModule.renderText(this.currentPassage.osis,
             {
                 oneVersePerLine: this.settings.linebreak ? true : false,

@@ -22,10 +22,10 @@ enyo.kind({
         {name: "noData", classes: "center", style: "margin-top: 10px;", showing: false},
         {name: "dataList", kind: "List", fit: true, touch: true, onSetupItem: "setupItem", components: [
             {name: "item", classes: "item", ontap: "handleListTap", components: [
-                {kind: "enyo.FittableRows", components: [
+                //{kind: "enyo.FittableRows", components: [
                     {name: "itemOsis", classes: ""},
                     {name: "itemText", classes: "item-text", allowHtml: true}
-                ]}
+                //]}
             ]}
         ]}
     ],

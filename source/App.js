@@ -20,13 +20,13 @@ enyo.kind({
                 onOpenDataView: "openDataView",
                 onOpenAbout: "openAbout"
             },
-            {name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "bcSelector", kind: "biblez.bcSelector", onSelect: "handlePassageSelect", onBack: "handleBack"},
+            /*{name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "settings", kind: "biblez.settings", onBack: "handleBack", onChange: "handleSettings"},
             {name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"},
             {name: "dataView", kind: "biblez.dataView", onBack: "handleBack", onVerse: "handleVerse"},
-            {name: "about", kind: "biblez.about", onBack: "handleBack"}
+            {name: "about", kind: "biblez.about", onBack: "handleBack"}*/
         ]}
     ],
 
@@ -40,6 +40,7 @@ enyo.kind({
 
     handleBack: function (inSender, inEvent) {
         this.$.panel.selectPanelByName("main");
+        enyo.asyncMethod(inSender, "destroy");
         return true;
     },
 
@@ -49,9 +50,11 @@ enyo.kind({
     },
 
     openModuleManager: function (inSender, inEvent) {
-        if(!enyo.platform.firefoxOS)
+        if(!enyo.platform.firefoxOS) {
+            this.$.panel.createComponent({name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"}, {owner: this}).render();
             this.$.panel.selectPanelByName("moduleManagerDesktop");
-        else {
+        } else {
+            this.$.panel.createComponent({name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"}, {owner: this}).render();
             this.$.panel.selectPanelByName("moduleManager");
             this.$.moduleManager.start();
         }
@@ -77,6 +80,7 @@ enyo.kind({
     },
 
     openPreferences: function (inSender, inEvent) {
+        this.$.panel.createComponent({name: "settings", kind: "biblez.settings", onBack: "handleBack", onChange: "handleSettings"}, {owner: this}).render();
         this.$.settings.setSettings();
         this.$.panel.selectPanelByName("settings");
     },
@@ -86,6 +90,7 @@ enyo.kind({
     },
 
     openNotes: function (inSender, inEvent) {
+        this.$.panel.createComponent({name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"}, {owner: this}).render();
         this.$.notes.setOsisRef(inEvent.osisRef);
         this.$.notes.setNoteId(inEvent.noteId);
         this.$.panel.selectPanelByName("notes");
@@ -97,17 +102,20 @@ enyo.kind({
     },
 
     openDataView: function (inSender, inEvent) {
+        this.$.panel.createComponent({name: "dataView", kind: "biblez.dataView", onBack: "handleBack", onVerse: "handleVerse"}, {owner: this}).render();
         this.$.dataView.updateSection(inEvent.section);
         this.$.panel.selectPanelByName("dataView");
     },
 
     handleVerse: function (inSender, inEvent) {
+        inSender.destroy();
         this.$.main.handlePassage(inEvent.osisRef);
         this.$.panel.selectPanelByName("main");
         return true;
     },
 
     openAbout: function (inSender, inEvent) {
+        this.$.panel.createComponent({name: "about", kind: "biblez.about", onBack: "handleBack"}, {owner: this}).render();
         this.$.panel.selectPanelByName("about");
     }
 });
