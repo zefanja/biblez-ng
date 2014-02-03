@@ -72,6 +72,10 @@
     margin-left: 10px;
 }
 
+.menu-item {
+    padding: 5px 10px;
+}
+
 .active-verse {
     background-color: yellow;
     transition: background-color 500ms linear;

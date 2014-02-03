@@ -106,6 +106,7 @@ enyo.kind({
         fontSize: 1.2,
         font: "default"
     },
+    centered: true,
     components:[
         {kind: "enyo.FittableRows", fit: true, components: [
             {name: "fontSlider", kind: "onyx.Slider", value: 50, onChange: "sliderChanged", classes: "font-slider"},

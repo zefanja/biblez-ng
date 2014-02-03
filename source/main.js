@@ -24,7 +24,7 @@ enyo.kind({
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
             {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
         ]},
-        {kind: "onyx.MoreToolbar", showing: false, classes: "main-toolbar", name: "topTB", components: [
+        {kind: "onyx.Toolbar", showing: false, classes: "main-toolbar", noStretch: true, name: "topTB", layoutKind: "FittableColumnsLayout", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
                 {kind: "onyx.Menu", maxHeight: "300", name: "moduleMenu"}
@@ -39,7 +39,7 @@ enyo.kind({
             {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/menu.png"},
                 {kind: "onyx.Menu", name: "actionMenu", maxHeight: "300", style: "width: 200px;", components: [
-                    {action: "bookmarks", components: [
+                    {action: "bookmarks", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
                         {content: $L("Bookmarks"), classes: "menu-label"}
                     ]},
@@ -60,18 +60,18 @@ enyo.kind({
                         {kind: "onyx.IconButton", src: "assets/settings.png"},
                         {content: $L("Preferences"), classes: "menu-label"}
                     ]},
+                    {action: "font", components: [
+                        {kind: "onyx.IconButton", src: "assets/font.png"},
+                        {content: $L("Font"), classes: "menu-label"}
+                    ]},
+                    //{name: "btFont", kind: "onyx.Icon", src: "assets/font.png", style: "height: 28px;", ontap: "handleFontMenu"},
                     {action: "about", components: [
                         {kind: "onyx.IconButton", src: "assets/info.png"},
                         {content: $L("About"), classes: "menu-label"}
                     ]}
                 ]}
             ]},
-            {name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"},
-            //{name: "btnPrefs", kind:"onyx.IconButton", src: "assets/settings.png", ontap: "handlePrefs"},
-            //{name: "plus", kind: "onyx.IconButton", src: "assets/add.png", style:"position:absolute;right:0;", ontap: "doOpenModuleManager"},
-            /*{kind: "onyx.InputDecorator", components: [
-                {kind: "onyx.Input", placeholder: "Enter a passage...", onchange: "handlePassage", name: "passageInput", value: "Matt 1"}
-            ]}*/
+            //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
         ]},
         {name: "mainPanel", kind: "Panels", index: 2, fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
             {},
@@ -413,7 +413,7 @@ enyo.kind({
     },
 
     handleFontMenu: function (inSender, inEvent) {
-        this.$.fontMenu.showAtEvent(inEvent);
+        this.$.fontMenu.show();
     },
 
     handleFont: function (inSender, inEvent) {
@@ -525,6 +525,8 @@ enyo.kind({
             this.doOpenPreferences();
         else if(inEvent.originator.action === "about")
             this.doOpenAbout();
+        else if(inEvent.originator.action === "font")
+            this.handleFontMenu();
         else
             this.doOpenDataView({section: inEvent.originator.action});
     },

@@ -43,13 +43,13 @@ enyo.kind({
 
                 ]},
                 {tag: "br"},
-                /*{kind: "onyx.Groupbox", components: [
+                {kind: "onyx.Groupbox", components: [
                     {kind: "onyx.GroupboxHeader", content: $L("Be careful!")},
                     {kind: "enyo.FittableRows", classes: "settings-row", components: [
                         {kind: "onyx.Button", content: "Delete all modules!", classes: "onyx-negative", style: "margin: 3px;", ontap: "deleteModules"},
                         {kind: "onyx.Button", content: "Delete all app data!", classes: "onyx-negative", style: "margin: 3px;", ontap: "deleteDatabases"}
                     ]}
-                ]},*/
+                ]},
             ]}
 
         ]}
