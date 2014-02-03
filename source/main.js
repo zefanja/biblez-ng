@@ -64,7 +64,6 @@ enyo.kind({
                         {kind: "onyx.IconButton", src: "assets/font.png"},
                         {content: $L("Font"), classes: "menu-label"}
                     ]},
-                    //{name: "btFont", kind: "onyx.Icon", src: "assets/font.png", style: "height: 28px;", ontap: "handleFontMenu"},
                     {action: "about", components: [
                         {kind: "onyx.IconButton", src: "assets/info.png"},
                         {content: $L("About"), classes: "menu-label"}
