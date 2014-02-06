@@ -30,14 +30,6 @@ enyo.kind({
         ]}
     ],
 
-    handlePanels: function (inSender, inEvent) {
-        if(inEvent.toIndex === 1 && enyo.platform.firefoxOS) {
-            this.$.moduleManager.start();
-        }
-        return true;
-
-    },
-
     handleBack: function (inSender, inEvent) {
         this.$.panel.selectPanelByName("main");
         enyo.asyncMethod(inSender, "destroy");

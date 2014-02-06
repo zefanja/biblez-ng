@@ -43,28 +43,28 @@ enyo.kind({
                         {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
                         {content: $L("Bookmarks"), classes: "menu-label"}
                     ]},
-                    {action: "notes", components: [
+                    {action: "notes", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/notes.png"},
                         {content: $L("Notes"), classes: "menu-label"}
                     ]},
-                    {action: "highlights", components: [
+                    {action: "highlights", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/highlights.png"},
                         {content: $L("Highlights"), classes: "menu-label"}
                     ]},
                     {classes: "onyx-menu-divider"},
-                    {action: "moduleManager", components: [
+                    {action: "moduleManager", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/add.png"},
                         {content: $L("Module Manager"), classes: "menu-label"}
                     ]},
-                    {action: "preferences", components: [
+                    {action: "preferences", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/settings.png"},
                         {content: $L("Preferences"), classes: "menu-label"}
                     ]},
-                    {action: "font", components: [
+                    {action: "font", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/font.png"},
                         {content: $L("Font"), classes: "menu-label"}
                     ]},
-                    {action: "about", components: [
+                    {action: "about", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/info.png"},
                         {content: $L("About"), classes: "menu-label"}
                     ]}
@@ -439,6 +439,7 @@ enyo.kind({
             }
             this.$.mainPanel.setIndexDirect(2);
         }
+        return true;
     },
 
     handleVerseTap: function (inSender, inEvent) {
