@@ -133,7 +133,7 @@ enyo.kind({
                 if(this.settings.history)
                     this.history = this.settings.history;
             } else {
-                console.log(inError);
+                //console.log(inError);
                 this.handleError("Couldn't load settings!");
             }
         }));
