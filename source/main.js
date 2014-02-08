@@ -494,6 +494,8 @@ enyo.kind({
             this.footnotes[attributes.osisRef].forEach(enyo.bind(this, function(item) {
                 if(item.n === attributes.n)
                     this.$.footnotePopup.setText(item.note);
+                else if (!isNaN(item.n) && item.n === parseInt(attributes.n, 10))
+                    this.$.footnotePopup.setText(item.note);
             }));
             this.$.footnotePopup.showAtEvent(inEvent);
         } else if (attributes.type === "crossReference") {
