@@ -145,6 +145,10 @@
 	direction: rtl;
 	text-align: right;
 }
+.enyo-locale-right-to-left .enyo-fittable-columns-layout.force-left-to-right {
+	direction: ltr;
+	text-align: left;
+}
 
 
 /* lib/layout/list/source/List.css */
@@ -1820,6 +1824,10 @@
     margin-left: 10px;
 }
 
+.menu-item {
+    padding: 5px 10px;
+}
+
 .active-verse {
     background-color: yellow;
     transition: background-color 500ms linear;
@@ -1971,6 +1979,7 @@ h3, h1 {
 
 .settings-row {
     padding: 5px;
+
 }
 
 /* NOTES */
