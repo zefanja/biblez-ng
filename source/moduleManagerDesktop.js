@@ -88,11 +88,13 @@ enyo.kind({
 
     handleRemove: function (inSender, inEvent) {
         if(inEvent.originator && inEvent.originator.modKey) {
+            inEvent.originator.setDisabled(true);
             sword.installMgr.removeModule(inEvent.originator.modKey, enyo.bind(this, function (inError) {
                 if(!inError) {
                     this.doInstalled();
                     this.getModules();
                 } else {
+                    inEvent.originator.setDisabled(false);
                     this.handleError(inError);
                 }
             }));
