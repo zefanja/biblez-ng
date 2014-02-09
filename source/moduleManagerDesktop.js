@@ -14,7 +14,7 @@ enyo.kind({
             {content: $L("Module Manager")}
             //{kind: "onyx.IconButton", src: "assets/delete.png", ontap: "clearDB"}
         ]},
-        {classes: "center", components: [
+        {kind: "enyo.Scroller", fit: true, classes: "center settings-container", components: [
             {content: $L("Download a zipped module from one of the following repositories:")},
             {allowHtml: true, content: "<ul><li><a target='_blank' href='http://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles'>CrossWire Main</a></li>" +
                                         "<li><a target='_blank' href='http://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Bibles&av=true'>CrossWire av11n</a></li>" +
@@ -23,16 +23,42 @@ enyo.kind({
             {content: $L("To install the module, select the module file!")},
             {kind: "onyx.Input", type: "file", id: "files", name: "files[]", onchange: "installModule"},
             {tag: "br"},
-            {kind: "onyx.Spinner", name: "spinner", showing: false, classes: "onyx-light center"}
+            {kind: "onyx.Spinner", name: "spinner", showing: false, classes: "onyx-light center"},
+            {tag: "br"},
+            {name: "gbModules", showing: false, kind: "onyx.Groupbox", components: [
+                {kind: "onyx.GroupboxHeader", content: $L("Installed Modules")},
+                {name: "moduleList", kind: "Repeater", count: 0, onSetupItem: "setupModules", components: [
+                    {kind: "enyo.FittableColumns", classes: "settings-row item", components: [
+                        {name: "moduleName", style: "line-height: 35px;", fit: true},
+                        {name: "btRemove", modKey: null, kind: "onyx.Button", content: "Remove", classes: "onyx-negative", ontap: "handleRemove"}
+                    ]}
+                ]}
+            ]}
         ]}
     ],
 
-    lang: [],
-    started: false,
-    repos: [],
     modules: [],
-    langModules: [],
-    currentModule: null,
+
+    rendered: function () {
+        this.inherited(arguments);
+        this.getModules();
+    },
+
+    getModules: function () {
+        sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
+            if (!inError) {
+                if(inModules.length !== 0) {
+                    this.$.gbModules.show();
+                } else if (inModules.length === 0) {
+                    this.$.gbModules.hide();
+                }
+                this.modules = inModules;
+                this.$.moduleList.setCount(this.modules.length);
+            } else {
+                this.handleError(inError);
+            }
+        }));
+    },
 
     handleBack: function() {
         this.doBack();
@@ -43,6 +69,7 @@ enyo.kind({
         sword.installMgr.installModule(inEvent.target.files[0], enyo.bind(this, function (inError, inModule) {
             if (!inError) {
                 this.doInstalled();
+                this.getModules();
                 this.$.spinner.stop();
                 this.handleError("Installed Module!");
             } else {
@@ -51,8 +78,26 @@ enyo.kind({
         }));
     },
 
-    clearDB: function () {
-        sword.dataMgr.clearDatabase();
+    setupModules: function (inSender, inEvent) {
+        var index = inEvent.index;
+        var item = inEvent.item;
+        item.$.moduleName.setContent(this.modules[index].modKey);
+        item.$.btRemove.modKey = this.modules[index].modKey;
+        return true;
+    },
+
+    handleRemove: function (inSender, inEvent) {
+        if(inEvent.originator && inEvent.originator.modKey) {
+            sword.installMgr.removeModule(inEvent.originator.modKey, enyo.bind(this, function (inError) {
+                if(!inError) {
+                    this.doInstalled();
+                    this.getModules();
+                } else {
+                    this.handleError(inError);
+                }
+            }));
+        }
+        return true;
     },
 
     handleError: function (inMessage) {

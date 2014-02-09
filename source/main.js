@@ -288,8 +288,13 @@ enyo.kind({
                     }
                     this.handleUserData(this.currentPassage.osis);
                     this.renderHistory();
-                } else
+                } else {
+                    if(inError.code && inError.code === 123) {
+                        //handle old internal module format
+                    }
                     this.handleError(inError.message);
+                }
+
             })
         );
     },
