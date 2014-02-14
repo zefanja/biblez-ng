@@ -23,9 +23,9 @@ enyo.kind({
                 ]}
             ]},
             {name: "chapterPanel", kind: "enyo.FittableRows", components: [
-                {kind: "onyx.Toolbar", components: [
-                {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
-                    {content: $L("Chapters")}
+                {name: "tbChapter", kind: "onyx.Toolbar", components: [
+                    {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
+                    {name: "chapterLabel", content: $L("Chapters"), classes: "text-ellipsis"}
                 ]},
                 {kind: "enyo.Scroller", fit: true, touch: true, components: [
                     {name: "chapterRepeater", kind: "Repeater", count: 0, onSetupItem: "setChapterItems", components: [
@@ -68,7 +68,14 @@ enyo.kind({
     handleBook: function (inSender, inEvent) {
         this.currentBook = this.books[inEvent.index];
         this.$.chapterRepeater.setCount(this.currentBook.maxChapter);
+        this.$.chapterLabel.setContent($L("Chapters in ") + this.currentBook.name);
         this.$.bcPanel.setIndex(1);
+        //truncate text if the label's width is longer than window.innerWidth
+        if(window.innerWidth - 60 < this.$.chapterLabel.hasNode().clientWidth) {
+            var w = this.$.tbChapter.hasNode().clientWidth - 60 + "px";
+            this.$.chapterLabel.applyStyle("width", w);
+        }
+
     },
 
     setChapterItems: function (inSender, inEvent) {
@@ -78,5 +85,11 @@ enyo.kind({
     handleChapter: function (inSender, inEvent) {
         this.doSelect({book: this.currentBook, chapter: inEvent.index+1, osis: this.currentBook.abbrev + "." + (inEvent.index+1), label: this.currentBook.abbrev + " " + (inEvent.index+1)});
         this.$.bcPanel.setIndex(0);
+    },
+
+    resizeHandler: function () {
+        this.inherited(arguments);
+        var w = this.$.tbChapter.hasNode().clientWidth - 60 + "px";
+        this.$.chapterLabel.applyStyle("width", w);
     }
 });

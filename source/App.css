@@ -144,6 +144,12 @@
     background-color: #F0E68C;
 }
 
+.text-ellipsis {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 /* POPUPs */
 .message-popup {
     text-align: center;
