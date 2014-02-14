@@ -268,6 +268,7 @@ enyo.kind({
                 this.doInstalled();
                 this.getInstalledModules();
             } else {
+                console.log(inError);
                 this.handleError(inError);
             }
             //console.log(inError, inModule);

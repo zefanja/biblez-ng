@@ -406,8 +406,8 @@ enyo.kind({
 
     handleBcSelector: function (inSender, inEvent) {
         if(enyo.platform.firefox || enyo.platform.androidFirefox) {
-            this.$.bcPopup.showAtEvent(inEvent);
-            //this.$.bcSelector.setPanel(0);
+            //this.$.bcPopup.showAtEvent(inEvent);
+            this.doOpenBC();
         } else
             this.doOpenBC();
     },

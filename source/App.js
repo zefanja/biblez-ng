@@ -32,7 +32,8 @@ enyo.kind({
 
     handleBack: function (inSender, inEvent) {
         this.$.panel.selectPanelByName("main");
-        enyo.asyncMethod(inSender, "destroy");
+        if(inSender.name !== "bcSelector")
+            enyo.asyncMethod(inSender, "destroy");
         return true;
     },
 
