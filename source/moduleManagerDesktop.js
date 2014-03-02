@@ -33,7 +33,9 @@ enyo.kind({
                         {name: "btRemove", modKey: null, kind: "onyx.Button", content: "Remove", classes: "onyx-negative", ontap: "handleRemove"}
                     ]}
                 ]}
-            ]}
+            ]},
+            {tag: "br"},
+            {kind: "onyx.Button", name: "btDeleteAll", content: "Delete all modules!", classes: "onyx-negative", style: "margin: 3px;", ontap: "deleteModules"},
         ]}
     ],
 
@@ -49,8 +51,10 @@ enyo.kind({
             if (!inError) {
                 if(inModules.length !== 0) {
                     this.$.gbModules.show();
+                    this.$.btDeleteAll.show();
                 } else if (inModules.length === 0) {
                     this.$.gbModules.hide();
+                    this.$.btDeleteAll.hide();
                 }
                 this.modules = inModules;
                 this.$.moduleList.setCount(this.modules.length);
@@ -107,5 +111,9 @@ enyo.kind({
             inMessage = inMessage.message;
         this.$.messagePopup.setContent(inMessage);
         this.$.messagePopup.show();
-    }
+    },
+
+    deleteModules: function () {
+        sword.dataMgr.clearDatabase();
+    },
 });
