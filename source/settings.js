@@ -40,7 +40,6 @@ enyo.kind({
                         {content: $L("Enable Introductions"), classes: "settings-item", fit: true},
                         {name: "tbIntro", key: "introductions", kind: "onyx.ToggleButton", onChange: "handleSettings"}
                     ]}
-
                 ]},
                 /*{tag: "br"},
                 {kind: "onyx.Groupbox", components: [
