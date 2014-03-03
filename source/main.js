@@ -191,6 +191,7 @@ enyo.kind({
             lastModule = this.settings.lastModule;
         this.$.moduleMenu.destroyClientControls();
         var mods = [];
+        this.currentModule = null;
         this.modules.forEach(enyo.bind(this, function (mod, idx) {
             if ((lastModule && lastModule === mod.modKey)) {
                 this.$.btnModules.setContent(lastModule);
@@ -205,7 +206,12 @@ enyo.kind({
         if(this.currentModule === null) {
             this.currentModule = this.modules[0];
             mods[0]["active"] = true;
+            mods[0]["components"] = [
+                {content: this.currentModule.modKey, index: 0},
+                {kind: "onyx.IconButton", src: "assets/checkmark.png", style: "float: right;"}
+            ];
             this.$.btnModules.setContent(this.currentModule.modKey);
+            this.settings["lastModule"] = this.currentModule.modKey;
         }
         this.$.moduleMenu.createComponents(mods, {owner: this.$.moduleMenu});
         this.$.moduleMenu.render();
