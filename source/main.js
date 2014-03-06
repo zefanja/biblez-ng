@@ -112,6 +112,7 @@ enyo.kind({
         this.inherited(arguments);
         this.$.spinner.stop();
         this.startUp();
+
         //this.$.mainPanel.setIndexDirect(2);
     },
 
