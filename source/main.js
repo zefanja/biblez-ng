@@ -72,25 +72,19 @@ enyo.kind({
             ]},
             //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
         ]},
-        {name: "mainPanel", kind: "Panels", index: 2, fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
-            {},
+        {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+            /*{},
             {kind: "FittableColumns", noStretch: true, components: [
                 {fit: true},
                 {content: "< Previous", classes: "chapter-nav chapter-nav-left"}
+            ]},*/
+            {name: "verseScroller", kind: "enyo.Scroller", onScrollStop: "handleScrolling", thumb: false, touch: true, touchOverscroll: false, fit: true, components: [
+                //{classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
+                //{name: "main", classes: "verse-view", allowHtml: true, onclick: "handleVerseTap"}
             ]},
-            {name: "verseScroller", kind: "enyo.Scroller", touch: true, fit: true, components: [
-                {classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
-                {name: "main", classes: "verse-view", allowHtml: true, onclick: "handleVerseTap"}
-            ]},
-            {kind: "FittableColumns", noStretch: true, components: [
+            /*{kind: "FittableColumns", noStretch: true, components: [
                 {content: "Next >", classes: "chapter-nav chapter-nav-right"},
                 {fit: true}
-            ]},
-            {},
-            /*{name: "firstStart", classes: "center", style: "margin-top: 20px;", components: [
-                {tag: "img", src: "assets/biblez128.png", style: "margin: 20px;"},
-                {content: $L("You have no modules installed. Open the Module Manager to install one."), style: "font-weight: bold; margin-bottom: 20px;"},
-                {kind: "onyx.Button", classes: "onyx-affirmative", content: $L("Open Module Manager"), ontap: "doOpenModuleManager"}
             ]},
             {}*/
         ]},
@@ -107,10 +101,17 @@ enyo.kind({
     panelIndex: 2,
     settings: {id: "settings"},
     footnotes: {},
+    reachedTop: false,
+    reachedBottom: false,
+    passagePos: {
+        top: null,
+        middle: null,
+        bottom: null
+    },
 
     create: function () {
         this.inherited(arguments);
-        this.$.spinner.stop();
+        //this.$.spinner.stop();
         this.startUp();
 
         //this.$.mainPanel.setIndexDirect(2);
@@ -124,12 +125,12 @@ enyo.kind({
                 this.getInstalledModules();
                 if(this.settings.fontSize) {
                     this.$.fontMenu.setFontSize(this.settings.fontSize);
-                    this.$.main.applyStyle("font-size", this.settings.fontSize + "em");
+                    this.$.verseScroller.applyStyle("font-size", this.settings.fontSize + "em");
                 }
                 if(this.settings.font) {
                     this.$.fontMenu.setFont(this.settings.font);
                     if(this.settings.font !== "default")
-                        this.$.main.applyStyle("font-family", this.settings.font);
+                        this.$.verseScroller.applyStyle("font-family", this.settings.font);
                 }
                 if(this.settings.history)
                     this.history = this.settings.history;
@@ -239,16 +240,20 @@ enyo.kind({
 
     passageChanged: function (inSender, inEvent) {
         this.$.bcPopup.hide();
-        this.currentPassage.osis = inEvent.osis;
-        this.currentPassage.label = inEvent.label;
+        delete inEvent.originator;
+        delete inEvent.delegate;
+        delete inEvent.type;
+        this.currentPassage = inEvent;
+        console.log(this.currentPassage);
         //this.currentPassage.verseNumber = inEvent.verseNumber;
         this.handlePassage();
+        return true;
     },
 
     handlePassage: function (passage) {
         //console.log("PASSAGE", passage, this.currentPassage);
-        this.$.main.setContent("");
-        this.$.spinner.start();
+        //this.$.main.setContent("");
+        //this.$.spinner.start();
         var verseNumber = 0; //this.currentPassage.verseNumber ? this.currentPassage.verseNumber : 0;
 
         if (typeof passage === "string") {
@@ -271,39 +276,35 @@ enyo.kind({
         this.$.btnPassage.setContent(this.currentPassage.label);
         //Adjust the TB Icons
         this.$.topTB.resized();
-        this.currentModule.renderText(this.currentPassage.osis,
-            {
-                oneVersePerLine: this.settings.linebreak ? true : false,
-                footnotes: this.settings.footnotes ? true : false,
-                crossReferences: this.settings.crossReferences ? true : false,
-                intro: this.settings.introductions ? true : false,
-                headings: this.settings.hasOwnProperty("headings") ? this.settings.headings : true,
-                wordsOfChristInRed: this.settings.woc ? true : false,
-            },
-            enyo.bind(this, function (inError, inResult) {
-                this.$.spinner.stop();
-                if(!inError) {
-                    this.footnotes = inResult.footnotes;
-                    this.$.main.setContent(inResult.text);
-                    if (verseNumber < 2)
-                        this.$.verseScroller.scrollToTop();
-                    else {
-                        var e = enyo.dom.byId(this.currentPassage.osis+"."+verseNumber);
-                        this.$.verseScroller.scrollToNode(e);
-                        e.style.backgroundColor = "rgba(210,105,30,0.25)";
-                        //e.className = e.className + " active-verse";
-                    }
-                    this.handleUserData(this.currentPassage.osis);
-                    this.renderHistory();
-                } else {
-                    if(inError.code && inError.code === 123) {
-                        //handle old internal module format
-                    }
-                    this.handleError(inError.message);
-                }
 
-            })
-        );
+        this.loadText(this.currentPassage.osis, enyo.bind(this, function (inError, inResult) {
+            if(!inError) {
+                this.footnotes = inResult.footnotes;
+                this.$.verseScroller.destroyClientControls();
+                this.$.verseScroller.createComponent({classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.currentPassage.book + " " + this.currentPassage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
+                if (verseNumber < 2)
+                    this.$.verseScroller.scrollToTop();
+                else {
+                    var e = enyo.dom.byId(this.currentPassage.osis+"."+verseNumber);
+                    this.$.verseScroller.scrollToNode(e);
+                    e.style.backgroundColor = "rgba(210,105,30,0.25)";
+                    //e.className = e.className + " active-verse";
+                }
+                this.handleUserData(this.currentPassage.osis);
+                this.renderHistory();
+            } else {
+                if(inError.code && inError.code === 123) {
+                    //handle old internal module format
+                }
+                this.handleError(inError.message);
+            }
+        }));
+
+        //Set passage positions
+        this.passagePos.middle = this.currentPassage.osis;
+        this.passagePos.top = sword.verseKey.previous(this.currentPassage.osis, this.currentModule.config.Versification).osis;
+        this.passagePos.bottom = sword.verseKey.next(this.currentPassage.osis, this.currentModule.config.Versification).osis;
+
     },
 
     renderHistory: function (inSender, inEvent) {
@@ -528,6 +529,96 @@ enyo.kind({
             );
         }
         return true;
+    },
+
+    //handling infinite scrolling
+    handleScrolling: function (inSender, inEvent) {
+        var cHeight = inEvent.scrollBounds.clientHeight,
+            top = inEvent.scrollBounds.top,
+            height = inEvent.scrollBounds.height,
+            yDir = inEvent.scrollBounds.yDir;
+
+        if(!this.reachedBottom && cHeight + top > height - 200/* && yDir === 1*/) {
+            this.reachedBottom = true;
+            console.log("BOTTOM");
+            this.addText(true, enyo.bind(this, function () {
+                this.reachedBottom = false;
+            }));
+        } else if (!this.reachedTop && top < 30/* && yDir === -1*/) {
+            this.reachedTop = true;
+            console.log("TOP");
+            this.addText(false, enyo.bind(this, function () {
+                this.reachedTop = false;
+            }));
+        }
+
+    },
+
+    addText: function(inBottom, inCallback) {
+        if(inBottom) {
+            //Load next verses
+            this.passagePos.top = this.passagePos.middle;
+            this.passagePos.middle = this.passagePos.bottom;
+            this.currentPassage = sword.verseKey.next(this.passagePos.middle, this.currentModule.config.Versification);
+            this.passagePos.bottom = this.currentPassage.osis;
+            this.loadText(this.passagePos.bottom, enyo.bind(this, function (inError, inResult) {
+                if(!inError) {
+                    //this.footnotes = inResult.footnotes;
+                    this.$.verseScroller.createComponent({classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.currentPassage.book + " " + this.currentPassage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
+                    var c = this.$.verseScroller.getClientControls();
+                    if(c.length > 3) {
+                        var newTop = this.$.verseScroller.getScrollBounds().top - c[1].hasNode().clientHeight;
+                        this.$.verseScroller.setScrollTop(newTop);
+                        c[0].destroy();
+                    }
+                    //this.handleUserData(this.currentPassage.osis);
+                    //this.renderHistory();
+                } else {
+                    this.handleError(inError.message);
+                }
+                inCallback();
+            }));
+        } else {
+            this.passagePos.bottom = this.passagePos.middle;
+            this.passagePos.middle = this.passagePos.top;
+            this.currentPassage = sword.verseKey.previous(this.passagePos.middle, this.currentModule.config.Versification);
+            this.passagePos.top = this.currentPassage.osis;
+            this.loadText(this.passagePos.top, enyo.bind(this, function (inError, inResult) {
+                if(!inError) {
+                    //this.footnotes = inResult.footnotes;
+                    this.$.verseScroller.createComponent({addBefore: null, classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.currentPassage.book + " " + this.currentPassage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
+                    var c = this.$.verseScroller.getClientControls();
+                    if(c.length > 3) {
+                        var newTop = c[0].hasNode().clientHeight;
+                        this.$.verseScroller.setScrollTop(newTop);
+                        c[3].destroy();
+                    }
+                    //this.handleUserData(this.currentPassage.osis);
+                    //this.renderHistory();
+                } else {
+                    this.handleError(inError.message);
+                }
+                inCallback();
+            }));
+        }
+    },
+
+    loadText: function (inOsis, inCallback) {
+        console.log(inOsis, this.passagePos);
+        this.currentModule.renderText(inOsis,
+            {
+                oneVersePerLine: this.settings.linebreak ? true : false,
+                footnotes: this.settings.footnotes ? true : false,
+                crossReferences: this.settings.crossReferences ? true : false,
+                intro: this.settings.introductions ? true : false,
+                headings: this.settings.hasOwnProperty("headings") ? this.settings.headings : true,
+                wordsOfChristInRed: this.settings.woc ? true : false,
+            },
+            enyo.bind(this, function (inError, inResult) {
+                console.log(inError, inResult);
+                inCallback(inError, inResult);
+            })
+        );
     },
 
     /*Action Menu*/
