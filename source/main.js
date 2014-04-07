@@ -94,7 +94,7 @@ enyo.kind({
     ],
 
     currentModule: null,
-    currentPassage: {
+    passage: {
         osis: "Matt.1",
         label: "Matt 1"
     },
@@ -105,6 +105,8 @@ enyo.kind({
     settings: {id: "settings"},
     footnotes: {},
     verses: [],
+    firstTop: true,
+    firstBottom: true,
     reachedTop: false,
     reachedBottom: false,
     passagePos: {
@@ -228,8 +230,8 @@ enyo.kind({
 
         //Load the verses
         if(this.settings)
-            this.currentPassage = (this.settings.lastRead) ? this.settings.lastRead : this.currentPassage;
-        this.handlePassage();
+            this.setPassage((this.settings.lastRead) ? this.settings.lastRead : this.passage);
+        //this.handlePassage();
     },
 
     moduleSelected: function (inSender, inEvent) {
@@ -247,18 +249,26 @@ enyo.kind({
         delete inEvent.originator;
         delete inEvent.delegate;
         delete inEvent.type;
-        this.currentPassage = inEvent;
-        console.log(this.currentPassage);
-        //this.currentPassage.verseNumber = inEvent.verseNumber;
-        this.handlePassage();
+        this.passage = inEvent;
+        if (!this.reachedBottom && !this.reachedTop)
+            this.handlePassage();
+
+        //Persist current passage
+        this.addToHistory(this.passage);
+        this.settings["lastRead"] = this.passage;
+        api.put(this.settings);
+
+        this.$.btnPassage.setContent((this.passage.label) ? this.passage.label : this.passage.book + " " + this.passage.chapter);
+        //Adjust the TB Icons
+        this.$.topTB.resized();
         return true;
     },
 
     handlePassage: function (passage) {
-        //console.log("PASSAGE", passage, this.currentPassage);
+        //console.log("PASSAGE", passage, this.passage);
         //this.$.main.setContent("");
         //this.$.spinner.start();
-        var verseNumber = 0; //this.currentPassage.verseNumber ? this.currentPassage.verseNumber : 0;
+        var verseNumber = 0; //this.passage.verseNumber ? this.passage.verseNumber : 0;
 
         if (typeof passage === "string") {
             //BibleZ currently supports only Book.Chapter Osis passages in the mainView
@@ -268,37 +278,29 @@ enyo.kind({
             } else
                 verseNumber = 0;
 
-            this.currentPassage.osis = passage.replace(" ", ".");
-            this.currentPassage.label = passage.replace(".", " ");
+            this.passage.osisRef = passage.replace(" ", ".");
+            this.passage.label = passage.replace(".", " ");
         }
 
-        //Persist current passage
-        this.addToHistory(this.currentPassage.osis);
-        this.settings["lastRead"] = this.currentPassage;
-        api.put(this.settings);
-
-        this.$.btnPassage.setContent(this.currentPassage.label);
-        //Adjust the TB Icons
-        this.$.topTB.resized();
-
-        this.loadText(this.currentPassage.osis, enyo.bind(this, function (inError, inResult) {
+        this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
             if(!inError) {
                 this.footnotes = inResult.footnotes;
                 /*this.$.verseScroller.destroyClientControls();
-                this.$.verseScroller.createComponent({classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.currentPassage.book + " " + this.currentPassage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
+                this.$.verseScroller.createComponent({classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.passage.book + " " + this.passage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
                 if (verseNumber < 2)
                     this.$.verseScroller.scrollToTop();
                 else {
-                    var e = enyo.dom.byId(this.currentPassage.osis+"."+verseNumber);
+                    var e = enyo.dom.byId(this.passage.osisRef+"."+verseNumber);
                     this.$.verseScroller.scrollToNode(e);
                     e.style.backgroundColor = "rgba(210,105,30,0.25)";
                     //e.className = e.className + " active-verse";
                 } */
                 this.verses = inResult.verses;
+                this.verses.unshift({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
                 this.$.verseList.setCount(this.verses.length);
                 this.$.verseList.refresh();
                 this.$.verseList.scrollToStart();
-                this.handleUserData(this.currentPassage.osis);
+                this.handleUserData(this.passage.osisRef);
                 this.renderHistory();
             } else {
                 if(inError.code && inError.code === 123) {
@@ -309,10 +311,12 @@ enyo.kind({
         }));
 
         //Set passage positions
-        this.passagePos.middle = this.currentPassage.osis;
-        this.passagePos.top = sword.verseKey.previous(this.currentPassage.osis, this.currentModule.config.Versification).osis;
-        this.passagePos.bottom = sword.verseKey.next(this.currentPassage.osis, this.currentModule.config.Versification).osis;
-
+        /*this.firstTop = true;
+        this.firstBottom = true;
+        this.passagePos.middle = this.passage.osisRef;
+        this.passagePos.top = sword.verseKey.previous(this.passage.osisRef, this.currentModule.config.Versification).osisRef;
+        this.passagePos.bottom = sword.verseKey.next(this.passage.osisRef, this.currentModule.config.Versification).osisRef;
+        */
     },
 
     setVerses: function (inSender, inEvent) {
@@ -338,16 +342,16 @@ enyo.kind({
         }
     },
 
-    addToHistory: function (inOsis) {
+    addToHistory: function (inPassage) {
         if (this.history.length > 15) {
             this.history.splice(16,this.history.length-15);
         }
         for (var l=0;l<this.history.length;l++) {
-            if(this.history[l].osisRef === inOsis) {
+            if(this.history[l].osisRef === inPassage.osisRef) {
                 this.history.splice(l,1);
             }
         }
-        this.history.unshift({osisRef: inOsis});
+        this.history.unshift(inPassage);
         this.settings["history"] = this.history;
         //api.putSetting("history", this.history);
     },
@@ -402,14 +406,14 @@ enyo.kind({
             var oldBmImg = enyo.dom.byId("img"+inEvent.osisRef);
             oldBmImg.parentNode.removeChild(oldBmImg);
         }
-        this.handleUserData(this.currentPassage.osis);
+        this.handleUserData(this.passage.osisRef);
     },
 
     handleHighlight: function (inSender, inEvent) {
         if(inEvent.action === "remove") {
             enyo.dom.byId(inEvent.osisRef).style.backgroundColor = "transparent";
         }
-        this.handleUserData(this.currentPassage.osis);
+        this.handleUserData(this.passage.osisRef);
     },
 
     handleNoteTap: function (inSender, inEvent) {
@@ -424,7 +428,7 @@ enyo.kind({
             var oldNoteImg = enyo.dom.byId("note"+inEvent.osisRef);
             oldNoteImg.parentNode.removeChild(oldNoteImg);
         }
-        this.handleUserData(this.currentPassage.osis);
+        this.handleUserData(this.passage.osisRef);
     },
 
     handleBcSelector: function (inSender, inEvent) {
@@ -459,9 +463,9 @@ enyo.kind({
         if(this.$.mainPanel.getIndex() !== 5) {
             if(this.currentModule) {
                 if(this.panelIndex === 1) {
-                    this.handlePassage(sword.verseKey.previous(this.currentPassage.osis, this.currentModule.config.Versification).osis);
+                    this.handlePassage(sword.verseKey.previous(this.passage.osisRef, this.currentModule.config.Versification).osisRef);
                 } else if(this.panelIndex === 3) {
-                    this.handlePassage(sword.verseKey.next(this.currentPassage.osis, this.currentModule.config.Versification).osis);
+                    this.handlePassage(sword.verseKey.next(this.passage.osisRef, this.currentModule.config.Versification).osisRef);
                 }
             }
             this.$.mainPanel.setIndexDirect(2);
@@ -576,15 +580,21 @@ enyo.kind({
             inCallback();
             return;
         }
-        if(inBottom) {
+        if(inBottom === true) {
             //Load next verses
-            this.passagePos.top = this.passagePos.middle;
-            this.passagePos.middle = this.passagePos.bottom;
-            this.currentPassage = sword.verseKey.next(this.passagePos.middle, this.currentModule.config.Versification);
-            this.passagePos.bottom = this.currentPassage.osis;
-            this.loadText(this.passagePos.bottom, enyo.bind(this, function (inError, inResult) {
+            /*if(!this.firstBottom) {
+                this.passagePos.top = this.passagePos.middle;
+                this.passagePos.middle = this.passagePos.bottom;
+                this.setPassage(sword.verseKey.next(this.passagePos.middle, this.currentModule.config.Versification));
+                this.passagePos.bottom = this.passage.osisRef;
+            } else
+                this.firstBottom = false; */
+            console.log(this.verses, this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")));
+            this.setPassage(sword.verseKey.next(this.verses[this.verses.length-1].osisRef.slice(0,this.verses[this.verses.length-1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification));
+            console.log(this.passage);
+            this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
-                    this.verses.push({text: "<h3>" + this.currentPassage.osis + "</h3>"});
+                    this.verses.push({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
                     this.verses.push.apply(this.verses, inResult.verses);
                     this.$.verseList.setCount(this.verses.length);
                     this.$.verseList.refresh();
@@ -594,16 +604,20 @@ enyo.kind({
                 inCallback();
             }));
         } else {
-            this.passagePos.bottom = this.passagePos.middle;
-            this.passagePos.middle = this.passagePos.top;
-            this.currentPassage = sword.verseKey.previous(this.passagePos.middle, this.currentModule.config.Versification);
-            this.passagePos.top = this.currentPassage.osis;
-            this.loadText(this.passagePos.top, enyo.bind(this, function (inError, inResult) {
+            /*if(!this.firstTop) {
+                this.passagePos.bottom = this.passagePos.middle;
+                this.passagePos.middle = this.passagePos.top;
+                this.setPassage(sword.verseKey.previous(this.passagePos.middle, this.currentModule.config.Versification));
+                this.passagePos.top = this.passage.osisRef;
+            } else
+                this.firstTop = false; */
+            this.setPassage(sword.verseKey.previous(this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification));
+            this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
                     var l = inResult.verses.length;
                     inResult.verses.push.apply(inResult.verses, this.verses);
                     this.verses = inResult.verses;
-                    this.verses.unshift({text: "<h3>" + this.currentPassage.osis + "</h3>"});
+                    this.verses.unshift({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
                     this.$.verseList.setCount(this.verses.length);
                     this.$.verseList.refresh();
                     this.$.verseList.scrollToRow(l+1);
@@ -616,7 +630,7 @@ enyo.kind({
     },
 
     loadText: function (inOsis, inCallback) {
-        //console.log(inOsis, this.passagePos);
+        console.log(inOsis, this.passagePos);
         this.currentModule.renderText(inOsis,
             {
                 oneVersePerLine: this.settings.linebreak ? true : false,
@@ -667,3 +681,4 @@ enyo.kind({
         this.$.messagePopup.show();
     }
 });
+

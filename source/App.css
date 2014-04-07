@@ -205,6 +205,14 @@
     color: #010101;
 }
 
+.caps {
+    float: left;
+    color: #934A15;
+    font-size: 4em;
+    padding-top: 4px;
+    padding-right: 8px;
+}
+
 h3, h1 {
     font-size: 1.3em;
 }

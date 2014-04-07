@@ -83,7 +83,7 @@ enyo.kind({
     },
 
     handleChapter: function (inSender, inEvent) {
-        this.doSelect({book: this.currentBook.abbrev, chapter: inEvent.index+1, osis: this.currentBook.abbrev + "." + (inEvent.index+1), label: this.currentBook.abbrev + " " + (inEvent.index+1)});
+        this.doSelect({book: this.currentBook.abbrev, chapter: inEvent.index+1, osisRef: this.currentBook.abbrev + "." + (inEvent.index+1), label: this.currentBook.abbrev + " " + (inEvent.index+1)});
         this.$.bcPanel.setIndex(0);
     },
 
