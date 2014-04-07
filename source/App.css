@@ -24,8 +24,12 @@
 
 /* MAIN VIEW */
 .verse-view {
-    padding: 10px;
+    margin: 10px;
     font-size: 1.2em;
+}
+
+.verse-view:last-child {
+    padding-bottom: 10px;
 }
 
 .module-picker {

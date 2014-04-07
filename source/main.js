@@ -73,15 +73,18 @@ enyo.kind({
             //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
         ]},
         {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+            {name: "verseList", kind: "VerseList", touch: true, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScrollStop: "handleScrolling", components: [
+                {name: "text", allowHtml: true, style: "display: inline;"}
+            ]}
             /*{},
             {kind: "FittableColumns", noStretch: true, components: [
                 {fit: true},
                 {content: "< Previous", classes: "chapter-nav chapter-nav-left"}
             ]},*/
-            {name: "verseScroller", kind: "enyo.Scroller", onScrollStop: "handleScrolling", thumb: false, touch: true, touchOverscroll: false, fit: true, components: [
+            /*{name: "verseScroller", kind: "enyo.Scroller", onScrollStop: "handleScrolling", thumb: false, touch: true, touchOverscroll: false, fit: true, components: [
                 //{classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
                 //{name: "main", classes: "verse-view", allowHtml: true, onclick: "handleVerseTap"}
-            ]},
+            ]},*/
             /*{kind: "FittableColumns", noStretch: true, components: [
                 {content: "Next >", classes: "chapter-nav chapter-nav-right"},
                 {fit: true}
@@ -101,6 +104,7 @@ enyo.kind({
     panelIndex: 2,
     settings: {id: "settings"},
     footnotes: {},
+    verses: [],
     reachedTop: false,
     reachedBottom: false,
     passagePos: {
@@ -280,7 +284,7 @@ enyo.kind({
         this.loadText(this.currentPassage.osis, enyo.bind(this, function (inError, inResult) {
             if(!inError) {
                 this.footnotes = inResult.footnotes;
-                this.$.verseScroller.destroyClientControls();
+                /*this.$.verseScroller.destroyClientControls();
                 this.$.verseScroller.createComponent({classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.currentPassage.book + " " + this.currentPassage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
                 if (verseNumber < 2)
                     this.$.verseScroller.scrollToTop();
@@ -289,7 +293,11 @@ enyo.kind({
                     this.$.verseScroller.scrollToNode(e);
                     e.style.backgroundColor = "rgba(210,105,30,0.25)";
                     //e.className = e.className + " active-verse";
-                }
+                } */
+                this.verses = inResult.verses;
+                this.$.verseList.setCount(this.verses.length);
+                this.$.verseList.refresh();
+                this.$.verseList.scrollToStart();
                 this.handleUserData(this.currentPassage.osis);
                 this.renderHistory();
             } else {
@@ -305,6 +313,13 @@ enyo.kind({
         this.passagePos.top = sword.verseKey.previous(this.currentPassage.osis, this.currentModule.config.Versification).osis;
         this.passagePos.bottom = sword.verseKey.next(this.currentPassage.osis, this.currentModule.config.Versification).osis;
 
+    },
+
+    setVerses: function (inSender, inEvent) {
+        var index = inEvent.index;
+        //console.log(inEvent, index);
+        this.$.text.setContent(this.verses[index].text);
+        return true;
     },
 
     renderHistory: function (inSender, inEvent) {
@@ -538,15 +553,17 @@ enyo.kind({
             height = inEvent.scrollBounds.height,
             yDir = inEvent.scrollBounds.yDir;
 
+        //console.log(cHeight, top, height, yDir);
+
         if(!this.reachedBottom && cHeight + top > height - 200/* && yDir === 1*/) {
             this.reachedBottom = true;
-            console.log("BOTTOM");
+            //console.log("BOTTOM");
             this.addText(true, enyo.bind(this, function () {
                 this.reachedBottom = false;
             }));
         } else if (!this.reachedTop && top < 30/* && yDir === -1*/) {
             this.reachedTop = true;
-            console.log("TOP");
+            //console.log("TOP");
             this.addText(false, enyo.bind(this, function () {
                 this.reachedTop = false;
             }));
@@ -555,6 +572,10 @@ enyo.kind({
     },
 
     addText: function(inBottom, inCallback) {
+        if(!this.currentModule) {
+            inCallback();
+            return;
+        }
         if(inBottom) {
             //Load next verses
             this.passagePos.top = this.passagePos.middle;
@@ -563,16 +584,10 @@ enyo.kind({
             this.passagePos.bottom = this.currentPassage.osis;
             this.loadText(this.passagePos.bottom, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
-                    //this.footnotes = inResult.footnotes;
-                    this.$.verseScroller.createComponent({classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.currentPassage.book + " " + this.currentPassage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
-                    var c = this.$.verseScroller.getClientControls();
-                    if(c.length > 3) {
-                        var newTop = this.$.verseScroller.getScrollBounds().top - c[1].hasNode().clientHeight;
-                        this.$.verseScroller.setScrollTop(newTop);
-                        c[0].destroy();
-                    }
-                    //this.handleUserData(this.currentPassage.osis);
-                    //this.renderHistory();
+                    this.verses.push({text: "<h3>" + this.currentPassage.osis + "</h3>"});
+                    this.verses.push.apply(this.verses, inResult.verses);
+                    this.$.verseList.setCount(this.verses.length);
+                    this.$.verseList.refresh();
                 } else {
                     this.handleError(inError.message);
                 }
@@ -585,16 +600,13 @@ enyo.kind({
             this.passagePos.top = this.currentPassage.osis;
             this.loadText(this.passagePos.top, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
-                    //this.footnotes = inResult.footnotes;
-                    this.$.verseScroller.createComponent({addBefore: null, classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.currentPassage.book + " " + this.currentPassage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
-                    var c = this.$.verseScroller.getClientControls();
-                    if(c.length > 3) {
-                        var newTop = c[0].hasNode().clientHeight;
-                        this.$.verseScroller.setScrollTop(newTop);
-                        c[3].destroy();
-                    }
-                    //this.handleUserData(this.currentPassage.osis);
-                    //this.renderHistory();
+                    var l = inResult.verses.length;
+                    inResult.verses.push.apply(inResult.verses, this.verses);
+                    this.verses = inResult.verses;
+                    this.verses.unshift({text: "<h3>" + this.currentPassage.osis + "</h3>"});
+                    this.$.verseList.setCount(this.verses.length);
+                    this.$.verseList.refresh();
+                    this.$.verseList.scrollToRow(l+1);
                 } else {
                     this.handleError(inError.message);
                 }
@@ -604,7 +616,7 @@ enyo.kind({
     },
 
     loadText: function (inOsis, inCallback) {
-        console.log(inOsis, this.passagePos);
+        //console.log(inOsis, this.passagePos);
         this.currentModule.renderText(inOsis,
             {
                 oneVersePerLine: this.settings.linebreak ? true : false,
@@ -613,9 +625,10 @@ enyo.kind({
                 intro: this.settings.introductions ? true : false,
                 headings: this.settings.hasOwnProperty("headings") ? this.settings.headings : true,
                 wordsOfChristInRed: this.settings.woc ? true : false,
+                array: true
             },
             enyo.bind(this, function (inError, inResult) {
-                console.log(inError, inResult);
+                //console.log(inError, inResult);
                 inCallback(inError, inResult);
             })
         );
