@@ -74,7 +74,9 @@ enyo.kind({
         ]},
         {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
             {name: "verseList", kind: "VerseList", touch: true, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScrollStop: "handleScrolling", components: [
-                {name: "text", allowHtml: true, style: "display: inline;"}
+                {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap"},
+                {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
+                {name: "imgNote", tag: "img", style: "display: inline;", showing: false, src: "assets/note.png"}
             ]}
             /*{},
             {kind: "FittableColumns", noStretch: true, components: [
@@ -96,7 +98,8 @@ enyo.kind({
     currentModule: null,
     passage: {
         osis: "Matt.1",
-        label: "Matt 1"
+        label: "Matt 1",
+        chapter: 1
     },
     userData: {},
     modules: [],
@@ -229,9 +232,11 @@ enyo.kind({
             this.$.bcSelector.setModule(this.currentModule);
 
         //Load the verses
+        if(this.passage === this.settings.lastRead)
+            this.handlePassage();
         if(this.settings)
             this.setPassage((this.settings.lastRead) ? this.settings.lastRead : this.passage);
-        //this.handlePassage();
+
     },
 
     moduleSelected: function (inSender, inEvent) {
@@ -264,43 +269,34 @@ enyo.kind({
         return true;
     },
 
-    handlePassage: function (passage) {
-        //console.log("PASSAGE", passage, this.passage);
+    handlePassage: function (inOsis) {
+        //console.log("PASSAGE", inOsis, this.passage);
         //this.$.main.setContent("");
         //this.$.spinner.start();
         var verseNumber = 0; //this.passage.verseNumber ? this.passage.verseNumber : 0;
 
-        if (typeof passage === "string") {
+        if (typeof inOsis === "string") {
             //BibleZ currently supports only Book.Chapter Osis passages in the mainView
-            if(passage.split(".").length > 2) {
-                verseNumber = parseInt(passage.slice(passage.lastIndexOf(".")+1, passage.length), 10);
-                passage = passage.slice(0, passage.lastIndexOf("."));
+            if(inOsis.split(".").length > 2) {
+                verseNumber = parseInt(inOsis.slice(inOsis.lastIndexOf(".")+1, inOsis.length), 10);
+                inOsis = inOsis.slice(0, inOsis.lastIndexOf("."));
             } else
                 verseNumber = 0;
 
-            this.passage.osisRef = passage.replace(" ", ".");
-            this.passage.label = passage.replace(".", " ");
+            this.passage.osisRef = inOsis;
+            this.passage.label = inOsis.replace(".", " ");
+            this.passage.chapter = parseInt(inOsis.split(".")[1], 10);
         }
 
         this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
             if(!inError) {
                 this.footnotes = inResult.footnotes;
-                /*this.$.verseScroller.destroyClientControls();
-                this.$.verseScroller.createComponent({classes: "verse-view", allowHtml: true, onclick: "handleVerseTap", content: "<h1>" + this.passage.book + " " + this.passage.chapter + "</h1>" + inResult.text}, {owner: this}).render();
-                if (verseNumber < 2)
-                    this.$.verseScroller.scrollToTop();
-                else {
-                    var e = enyo.dom.byId(this.passage.osisRef+"."+verseNumber);
-                    this.$.verseScroller.scrollToNode(e);
-                    e.style.backgroundColor = "rgba(210,105,30,0.25)";
-                    //e.className = e.className + " active-verse";
-                } */
                 this.verses = inResult.verses;
+                this.handleUserData(this.passage.osisRef);
                 this.verses.unshift({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
                 this.$.verseList.setCount(this.verses.length);
                 this.$.verseList.refresh();
                 this.$.verseList.scrollToStart();
-                this.handleUserData(this.passage.osisRef);
                 this.renderHistory();
             } else {
                 if(inError.code && inError.code === 123) {
@@ -323,6 +319,22 @@ enyo.kind({
         var index = inEvent.index;
         //console.log(inEvent, index);
         this.$.text.setContent(this.verses[index].text);
+        //Bookmarks
+        if(this.verses[index].bookmark)
+            this.$.imgBm.show();
+        else
+            this.$.imgBm.hide();
+        //Notes
+        if(this.verses[index].note)
+            this.$.imgNote.show();
+        else
+            this.$.imgNote.hide();
+        //Highlights
+        if(this.verses[index].highlight)
+            this.$.text.applyStyle("background-color", this.verses[index].color);
+        else
+            this.$.text.applyStyle("background-color", "none");
+
         return true;
     },
 
@@ -364,9 +376,9 @@ enyo.kind({
             if(!inError) {
                 this.userData = inUserData;
                 //console.log(this.userData);
-                Object.keys(inUserData).forEach(function (key) {
-                    if(inUserData[key].bookmarkId && !enyo.dom.byId("img"+key)) {
-                        enyo.dom.byId(key).insertAdjacentHTML("beforeend", " <img id='img" + key + "' src='assets/bookmark.png' />");
+                Object.keys(inUserData).forEach(enyo.bind(this, function (key) {
+                    if(inUserData[key].bookmarkId) {
+                        this.updateVerses(key, {bookmark: true});
                     }
                     if(inUserData[key].highlightId) {
                         hlKeys.push(inUserData[key].highlightId);
@@ -374,27 +386,30 @@ enyo.kind({
                     if(inUserData[key].noteId) {
                         noteKeys.push(inUserData[key].noteId);
                     }
-                });
+
+                }));
                 if (hlKeys.length !== 0) {
                     api.getHighlights(hlKeys, enyo.bind(this, function (inError, inHighlights) {
                         if(!inError) {
                             inHighlights.forEach(enyo.bind(this, function (hl) {
-                                enyo.dom.byId(hl.osisRef).style.backgroundColor = hl.color;
+                                this.updateVerses(hl.osisRef, {highlight: true, color: hl.color});
+                                //enyo.dom.byId(hl.osisRef).style.backgroundColor = hl.color;
                             }));
                         } else
                             this.handleError(inError);
+
                     }));
                 }
                 if (noteKeys.length !== 0) {
                     api.getNotes(noteKeys, enyo.bind(this, function (inError, inNotes) {
                         if(!inError) {
                             inNotes.forEach(enyo.bind(this, function (note) {
-                                if(!enyo.dom.byId("note"+note.osisRef))
-                                    enyo.dom.byId(note.osisRef).insertAdjacentHTML("beforeend", " <a href=?type=note&osisRef=" + note.osisRef + "&id=" + note.id + " id='note" + note.osisRef + "'><img src='assets/note.png' /></a>");
+                                this.updateVerses(note.osisRef, {note: true, type: "note", id: note.id});
                             }));
                         } else
                             this.handleError(inError);
                     }));
+
                 }
             }
         }));
@@ -547,7 +562,7 @@ enyo.kind({
                 })
             );
         }
-        return true;
+        return false;
     },
 
     //handling infinite scrolling
@@ -582,13 +597,6 @@ enyo.kind({
         }
         if(inBottom === true) {
             //Load next verses
-            /*if(!this.firstBottom) {
-                this.passagePos.top = this.passagePos.middle;
-                this.passagePos.middle = this.passagePos.bottom;
-                this.setPassage(sword.verseKey.next(this.passagePos.middle, this.currentModule.config.Versification));
-                this.passagePos.bottom = this.passage.osisRef;
-            } else
-                this.firstBottom = false; */
             console.log(this.verses, this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")));
             this.setPassage(sword.verseKey.next(this.verses[this.verses.length-1].osisRef.slice(0,this.verses[this.verses.length-1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification));
             console.log(this.passage);
@@ -596,24 +604,22 @@ enyo.kind({
                 if(!inError) {
                     this.verses.push({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
                     this.verses.push.apply(this.verses, inResult.verses);
+                    if(inResult.hasOwnProperty("footnotes"))
+                        this.footnotes = api.extend(this.footnotes, inResult.footnotes);
                     this.$.verseList.setCount(this.verses.length);
                     this.$.verseList.refresh();
+                    this.handleUserData(this.passage.osisRef);
                 } else {
                     this.handleError(inError.message);
                 }
                 inCallback();
             }));
         } else {
-            /*if(!this.firstTop) {
-                this.passagePos.bottom = this.passagePos.middle;
-                this.passagePos.middle = this.passagePos.top;
-                this.setPassage(sword.verseKey.previous(this.passagePos.middle, this.currentModule.config.Versification));
-                this.passagePos.top = this.passage.osisRef;
-            } else
-                this.firstTop = false; */
             this.setPassage(sword.verseKey.previous(this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification));
             this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
+                    if(inResult.hasOwnProperty("footnotes"))
+                        this.footnotes = api.extend(this.footnotes, inResult.footnotes);
                     var l = inResult.verses.length;
                     inResult.verses.push.apply(inResult.verses, this.verses);
                     this.verses = inResult.verses;
@@ -621,6 +627,7 @@ enyo.kind({
                     this.$.verseList.setCount(this.verses.length);
                     this.$.verseList.refresh();
                     this.$.verseList.scrollToRow(l+1);
+                    this.handleUserData(this.passage.osisRef);
                 } else {
                     this.handleError(inError.message);
                 }
@@ -664,6 +671,17 @@ enyo.kind({
 
     handlePanelIndex: function (inSender, inEvent) {
         this.panelIndex = inEvent.toIndex;
+    },
+
+    /* HELPERS */
+    updateVerses: function (inOsis, inObject) {
+        this.verses.forEach(enyo.bind(this, function (item, idx) {
+            if (item.osisRef === inOsis) {
+                this.verses[idx] = api.extend(item, inObject);
+                this.$.verseList.renderRow(idx);
+            }
+        }));
+        //console.log("UPDATED:", this.verses);
     },
 
     handleOrientation: function (inSender, inEvent) {

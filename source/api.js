@@ -434,9 +434,21 @@ var api = {
         });
     },
 
+    /* HELPERS */
+
     formatOsis: function (inOsis) {
         var split = inOsis.split(".");
         var formatted = split[0] + " " + split[1];
         return  (split[2]) ? formatted + ":" + split[2] : formatted;
+    },
+
+    extend: function (inTarget) {
+        var sources = [].slice.call(arguments, 1);
+        sources.forEach(function (source) {
+            for (var prop in source) {
+                inTarget[prop] = source[prop];
+            }
+        });
+        return inTarget;
     }
 };

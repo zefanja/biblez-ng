@@ -2,7 +2,7 @@
 enyo.kind({
     name: "biblez.versePopup",
     kind: "onyx.Popup",
-    modal: true,
+    modal: false,
     scrimWhenModal: true,
     scrim: true,
     classes: "verse-popup",
