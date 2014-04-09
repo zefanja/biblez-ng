@@ -58,6 +58,7 @@ enyo.kind({
         api.putNote({id: this.noteId, text: this.$.noteInput.getValue().replace(/"/g, '&quot;'), osisRef: this.osisRef}, enyo.bind(this, function (inError, inId) {
             if(!inError) {
                 this.doChange({action: "update", osisRef: this.osisRef});
+                this.doBack();
             } else
                 console.log(inError);
         }));
@@ -67,7 +68,6 @@ enyo.kind({
         api.removeNote({id: this.noteId, osisRef: this.osisRef}, enyo.bind(this, function (inError) {
             if(!inError) {
                 this.doChange({action: "remove", osisRef: this.osisRef});
-                this.doBack();
             } else
                 this.handleError(inError);
         }));

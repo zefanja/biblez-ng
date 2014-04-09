@@ -36,6 +36,7 @@ enyo.kind({
                 {kind: "onyx.Menu", maxHeight: "300", name: "historyMenu"}
             ]},
             {fit: true},
+            {classes: "toolbar-spinner", name: "tbSpinner", showing: false},
             {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/menu.png"},
                 {kind: "onyx.Menu", name: "actionMenu", maxHeight: "300", style: "width: 200px;", components: [
@@ -76,8 +77,9 @@ enyo.kind({
             {name: "verseList", kind: "VerseList", touch: true, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScrollStop: "handleScrolling", components: [
                 {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
                 {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
-                {name: "imgNote", tag: "img", style: "display: inline;", showing: false, src: "assets/note.png"}
+                {name: "imgNote", tag: "img", type: "note", style: "display: inline; margin: 0 3px;", showing: false, src: "assets/note.png", ontap: "handleVerseTap"}
             ]}
+
             /*{},
             {kind: "FittableColumns", noStretch: true, components: [
                 {fit: true},
@@ -134,12 +136,12 @@ enyo.kind({
                 this.getInstalledModules();
                 if(this.settings.fontSize) {
                     this.$.fontMenu.setFontSize(this.settings.fontSize);
-                    this.$.verseScroller.applyStyle("font-size", this.settings.fontSize + "em");
+                    this.$.verseList.applyStyle("font-size", this.settings.fontSize + "em");
                 }
                 if(this.settings.font) {
                     this.$.fontMenu.setFont(this.settings.font);
                     if(this.settings.font !== "default")
-                        this.$.verseScroller.applyStyle("font-family", this.settings.font);
+                        this.$.verseList.applyStyle("font-family", this.settings.font);
                 }
                 if(this.settings.history)
                     this.history = this.settings.history;
@@ -154,8 +156,7 @@ enyo.kind({
         api.get("settings", enyo.bind(this, function(inError, inSettings) {
             if(!inError) {
                 this.settings = (inSettings) ? inSettings: this.settings;
-                if(inEvent.setting === "linebreak" || inEvent.setting === "footnotes" || inEvent.setting === "headings" || inEvent.setting === "crossReferences" || inEvent.setting === "introductions" || inEvent.setting === "woc")
-                    this.handlePassage();
+                this.handlePassage();
             } else {
                 this.handleError("Couldn't load settings!");
             }
@@ -166,7 +167,7 @@ enyo.kind({
         sword.moduleMgr.getModules(enyo.bind(this, function(inError, inModules) {
             if (!inError) {
                 if(inModules.length !== 0) {
-                    this.$.mainPanel.selectPanelByName("verseScroller");
+                    this.$.mainPanel.selectPanelByName("verseList");
                     this.$.mainPanel.draggable = true;
                     this.$.topTB.show();
                     this.modules = inModules;
@@ -273,7 +274,7 @@ enyo.kind({
         //console.log("PASSAGE", inOsis, this.passage);
         //this.$.main.setContent("");
         //this.$.spinner.start();
-        var verseNumber = 0; //this.passage.verseNumber ? this.passage.verseNumber : 0;
+        var verseNumber = this.passage.verseNumber ? this.passage.verseNumber : 0;
 
         if (typeof inOsis === "string") {
             //BibleZ currently supports only Book.Chapter Osis passages in the mainView
@@ -296,7 +297,10 @@ enyo.kind({
                 this.verses.unshift({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
                 this.$.verseList.setCount(this.verses.length);
                 this.$.verseList.refresh();
-                this.$.verseList.scrollToStart();
+                if (verseNumber === 0)
+                    this.$.verseList.scrollToStart();
+                else
+                    this.$.verseList.scrollToRow(verseNumber+1);
                 this.renderHistory();
             } else {
                 if(inError.code && inError.code === 123) {
@@ -317,21 +321,21 @@ enyo.kind({
 
     setVerses: function (inSender, inEvent) {
         var index = inEvent.index;
-        //console.log(inEvent, index);
-        this.$.text.setContent(this.verses[index].text);
+        var item = this.verses[index];
+        this.$.text.setContent(item.text);
         //Bookmarks
-        if(this.verses[index].bookmark)
+        if(item.bookmark)
             this.$.imgBm.show();
         else
             this.$.imgBm.hide();
         //Notes
-        if(this.verses[index].note)
+        if(item.note)
             this.$.imgNote.show();
         else
             this.$.imgNote.hide();
         //Highlights
-        if(this.verses[index].highlight)
-            this.$.text.applyStyle("background-color", this.verses[index].color);
+        if(item.highlight)
+            this.$.text.applyStyle("background-color", item.color);
         else
             this.$.text.applyStyle("background-color", "none");
 
@@ -404,7 +408,7 @@ enyo.kind({
                     api.getNotes(noteKeys, enyo.bind(this, function (inError, inNotes) {
                         if(!inError) {
                             inNotes.forEach(enyo.bind(this, function (note) {
-                                this.updateVerses(note.osisRef, {note: true, type: "note", id: note.id});
+                                this.updateVerses(note.osisRef, {note: true, type: "note", noteId: note.id});
                             }));
                         } else
                             this.handleError(inError);
@@ -437,10 +441,8 @@ enyo.kind({
     },
 
     handleNote: function (inSender, inEvent) {
-        //console.log("handleNote", inEvent);
         if(inEvent.action === "remove") {
-            var oldNoteImg = enyo.dom.byId("note"+inEvent.osisRef);
-            oldNoteImg.parentNode.removeChild(oldNoteImg);
+            this.updateVerses(inEvent.osisRef, {note: false});
         }
         this.handleUserData(inEvent.osisRef);
     },
@@ -461,15 +463,17 @@ enyo.kind({
     },
 
     handleFont: function (inSender, inEvent) {
-        this.$.main.applyStyle("font-family", inEvent.font);
+        this.$.verseList.applyStyle("font-family", inEvent.font);
+        this.$.verseList.reset();
         api.putSetting("font", inEvent.font);
     },
 
     handleFontSize: function (inSender, inEvent) {
         if(inEvent.font !== "default")
-            this.$.main.applyStyle("font-size", inEvent.fontSize + "em");
+            this.$.verseList.applyStyle("font-size", inEvent.fontSize + "em");
         else
-            this.$.main.applyStyle("font-size", null);
+            this.$.verseList.applyStyle("font-size", null);
+        this.$.verseList.reset();
         api.putSetting("fontSize", inEvent.fontSize);
     },
 
@@ -490,7 +494,6 @@ enyo.kind({
     handleVerseTap: function (inSender, inEvent) {
         inEvent.preventDefault();
         var attributes = {};
-        //console.log(inEvent);
         if(inEvent.target.href || inEvent.target.parentNode.href) {
             var url = inEvent.target.href || inEvent.target.parentNode.href;
             url.split("?")[1].split("&").forEach(function(item) {
@@ -527,14 +530,14 @@ enyo.kind({
             this.$.versePopup.setLabels();
             this.$.versePopup.showAtEvent(inEvent);
         } else if (attributes.type === "note") {
-            api.getNote(parseInt(attributes.id, 10), enyo.bind(this, function (inError, inNote) {
+            /*api.getNote(parseInt(attributes.noteId, 10), enyo.bind(this, function (inError, inNote) {
                 if(!inError) {
                     this.$.notePopup.setText(inNote.text);
                     this.$.notePopup.setOsisRef(inNote.osisRef);
                     this.$.notePopup.showAtEvent(inEvent);
                 } else
                     this.handleError(inError);
-            }));
+            }));*/
         } else if (attributes.type === "footnote") {
             this.footnotes[attributes.osisRef].forEach(enyo.bind(this, function(item) {
                 if(item.n === attributes.n)
@@ -560,6 +563,18 @@ enyo.kind({
                     }
                 })
             );
+        }
+
+        //Handle user notes
+        if(inSender.type === "note") {
+            api.getNote(parseInt(this.verses[inEvent.index].noteId, 10), enyo.bind(this, function (inError, inNote) {
+                if(!inError) {
+                    this.$.notePopup.setText(inNote.text);
+                    this.$.notePopup.setOsisRef(inNote.osisRef);
+                    this.$.notePopup.showAtEvent(inEvent);
+                } else
+                    this.handleError(inError);
+            }));
         }
         return false;
     },
@@ -637,6 +652,8 @@ enyo.kind({
 
     loadText: function (inOsis, inCallback) {
         console.log(inOsis, this.passagePos);
+        this.$.tbSpinner.show();
+        this.$.topTB.resized();
         this.currentModule.renderText(inOsis,
             {
                 oneVersePerLine: this.settings.linebreak ? true : false,
@@ -650,6 +667,8 @@ enyo.kind({
             enyo.bind(this, function (inError, inResult) {
                 //console.log(inError, inResult);
                 inCallback(inError, inResult);
+                this.$.tbSpinner.hide();
+                this.$.topTB.resized();
             })
         );
     },

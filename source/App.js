@@ -32,7 +32,7 @@ enyo.kind({
 
     handleBack: function (inSender, inEvent) {
         this.$.panel.selectPanelByName("main");
-        if(inSender.name !== "bcSelector")
+        if(inSender.name !== "bcSelector" && inSender.name !== "notes" && inSender.name !== "settings")
             enyo.asyncMethod(inSender, "destroy");
         return true;
     },
@@ -80,6 +80,8 @@ enyo.kind({
 
     handleSettings: function (inSender, inEvent) {
         this.$.main.handleSettings(inSender, inEvent);
+        enyo.asyncMethod(inSender, "destroy");
+        this.$.panel.selectPanelByName("main");
     },
 
     openNotes: function (inSender, inEvent) {
@@ -91,6 +93,8 @@ enyo.kind({
 
     handleNote: function (inSender, inEvent) {
         this.$.main.handleNote(inSender, inEvent);
+        enyo.asyncMethod(inSender, "destroy");
+        this.$.panel.selectPanelByName("main");
         return true;
     },
 

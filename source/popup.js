@@ -66,8 +66,7 @@ enyo.kind({
 
     highlightVerse: function (inSender, inEvent) {
         this.hide();
-        var obj = (this.hlExists) ? {id: this.hlId, osisRef: this.osisRef, color: inSender.color} : {osisRef: this.osisRef, color: inSender.color}
-        console.log(obj, this.hlId, this.hlExists);
+        var obj = (this.hlExists) ? {id: this.hlId, osisRef: this.osisRef, color: inSender.color} : {osisRef: this.osisRef, color: inSender.color};
         api.putHighlight(obj, enyo.bind(this, function (inError, inId) {
             if(!inError)
                 this.doHighlight({osisRef: this.osisRef});

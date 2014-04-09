@@ -22,6 +22,13 @@
     }
 }
 
+.toolbar-spinner {
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    background: url("../assets/spinner.gif") no-repeat 0 0;
+}
+
 /* MAIN VIEW */
 .verse-view {
     margin: 10px;

@@ -55,12 +55,16 @@ enyo.kind({
         ]}
     ],
 
+    changed: false,
+
     rendered: function () {
         this.inherited(arguments);
         this.$.container.resized();
     },
 
     handleBack: function() {
+        if (this.changed)
+            this.doChange();
         this.doBack();
     },
 
@@ -89,8 +93,10 @@ enyo.kind({
     handleSettings: function (inSender, inEvent) {
         api.putSetting(inSender.key, inSender.getValue(), enyo.bind(this, function (inError, inId) {
             if(!inError)
-                this.doChange({setting: inSender.key, value: inSender.getValue()});
+                this.changed = true;
+                //this.doChange({setting: inSender.key, value: inSender.getValue()});
         }));
+        return true;
     },
 
     deleteModules: function () {
