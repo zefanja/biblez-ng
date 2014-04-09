@@ -74,7 +74,7 @@ enyo.kind({
         ]},
         {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
             {name: "verseList", kind: "VerseList", touch: true, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScrollStop: "handleScrolling", components: [
-                {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap"},
+                {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
                 {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
                 {name: "imgNote", tag: "img", style: "display: inline;", showing: false, src: "assets/note.png"}
             ]}
@@ -374,7 +374,7 @@ enyo.kind({
             noteKeys = [];
         api.getUserData(inOsis, vmax, enyo.bind(this, function (inError, inUserData) {
             if(!inError) {
-                this.userData = inUserData;
+                this.userData = api.extend(this.userData, inUserData);
                 //console.log(this.userData);
                 Object.keys(inUserData).forEach(enyo.bind(this, function (key) {
                     if(inUserData[key].bookmarkId) {
@@ -418,17 +418,16 @@ enyo.kind({
 
     handleBookmark: function (inSender, inEvent) {
         if(inEvent.action === "remove") {
-            var oldBmImg = enyo.dom.byId("img"+inEvent.osisRef);
-            oldBmImg.parentNode.removeChild(oldBmImg);
+            this.updateVerses(inEvent.osisRef, {bookmark: false});
         }
-        this.handleUserData(this.passage.osisRef);
+        this.handleUserData(inEvent.osisRef);
     },
 
     handleHighlight: function (inSender, inEvent) {
         if(inEvent.action === "remove") {
-            enyo.dom.byId(inEvent.osisRef).style.backgroundColor = "transparent";
+            this.updateVerses(inEvent.osisRef, {highlight: false});
         }
-        this.handleUserData(this.passage.osisRef);
+        this.handleUserData(inEvent.osisRef);
     },
 
     handleNoteTap: function (inSender, inEvent) {
@@ -443,7 +442,7 @@ enyo.kind({
             var oldNoteImg = enyo.dom.byId("note"+inEvent.osisRef);
             oldNoteImg.parentNode.removeChild(oldNoteImg);
         }
-        this.handleUserData(this.passage.osisRef);
+        this.handleUserData(inEvent.osisRef);
     },
 
     handleBcSelector: function (inSender, inEvent) {

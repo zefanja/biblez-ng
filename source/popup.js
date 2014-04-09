@@ -2,9 +2,8 @@
 enyo.kind({
     name: "biblez.versePopup",
     kind: "onyx.Popup",
-    modal: false,
-    scrimWhenModal: true,
-    scrim: true,
+    modal: true,
+    floating: true,
     classes: "verse-popup",
     events: {
         onBookmark: "",
@@ -52,7 +51,7 @@ enyo.kind({
         if (!this.bmExists)
             api.putBookmark({osisRef: this.osisRef}, enyo.bind(this, function (inError, inId) {
                 if(!inError) {
-                    this.doBookmark({action: "add"});
+                    this.doBookmark({action: "add", osisRef: this.osisRef});
                 } else
                     console.log(inError);
             }));
@@ -67,9 +66,11 @@ enyo.kind({
 
     highlightVerse: function (inSender, inEvent) {
         this.hide();
-        api.putHighlight({osisRef: this.osisRef, color: inSender.color}, enyo.bind(this, function (inError, inId) {
+        var obj = (this.hlExists) ? {id: this.hlId, osisRef: this.osisRef, color: inSender.color} : {osisRef: this.osisRef, color: inSender.color}
+        console.log(obj, this.hlId, this.hlExists);
+        api.putHighlight(obj, enyo.bind(this, function (inError, inId) {
             if(!inError)
-                this.doHighlight();
+                this.doHighlight({osisRef: this.osisRef});
             else
                 console.log(inError);
         }));
