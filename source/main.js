@@ -114,6 +114,7 @@ enyo.kind({
     reachedBottom: false,
     offset: 0,
     rowSize: 0,
+    hasVerseNumber: 0,
 
     create: function () {
         this.inherited(arguments);
@@ -229,7 +230,7 @@ enyo.kind({
 
         //Load the verses
         if(this.passage === this.settings.lastRead || !this.settings.lastRead)
-            this.handlePassage();
+            this.handlePassage(this.passage);
         if(this.settings)
             this.setPassage((this.settings.lastRead) ? this.settings.lastRead : this.passage);
 
@@ -266,23 +267,24 @@ enyo.kind({
 
         }
         if (!this.reachedBottom && !this.reachedTop && !inEvent.offsetRef)
-            this.handlePassage();
+            this.handlePassage(this.passage);
 
         //Persist current passage
         this.addToHistory(this.passage);
         this.settings["lastRead"] = this.passage;
         api.put(this.settings);
 
-        this.$.btnPassage.setContent((this.passage.label) ? this.passage.label : this.passage.book + " " + this.passage.chapter);
+        this.$.btnPassage.setContent((this.passage.label) ? this.passage.label : api.formatOsis(this.passage.osisRef));
         //Adjust the TB Icons
         this.$.topTB.resized();
         return true;
     },
 
     handlePassage: function (inOsis) {
-        //console.log("PASSAGE", inOsis, this.passage);
-        //this.$.main.setContent("");
-        //this.$.spinner.start();
+        this.verses = [];
+        this.$.verseList.setCount(this.verses.length);
+        this.$.verseList.refresh();
+
         var verseNumber = this.passage.verseNumber ? this.passage.verseNumber : 0;
 
         if (typeof inOsis === "string") {
@@ -293,23 +295,36 @@ enyo.kind({
             } else
                 verseNumber = 0;
 
-            this.passage.osisRef = inOsis;
-            this.passage.label = inOsis.replace(".", " ");
-            this.passage.chapter = parseInt(inOsis.split(".")[1], 10);
+            this.passage = {
+                osisRef: inOsis,
+                label: inOsis.replace(".", " "),
+                chapter: parseInt(inOsis.split(".")[1], 10)
+            };
         }
 
         this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
             if(!inError) {
                 this.footnotes = inResult.footnotes;
                 this.verses = inResult.verses;
+                var caps = "";
+                if(inResult.rtol) {
+                    this.$.verseList.applyStyle("text-align", "right");
+                    caps = "<br><div class='caps-rtol'>" + this.passage.chapter + "</div>";
+                } else {
+                    this.$.verseList.applyStyle("text-align", "left");
+                    caps = "<br><div class='caps'>" + this.passage.chapter + "</div>";
+                }
                 this.handleUserData(this.passage.osisRef);
-                this.verses.unshift({osisRef: this.passage.osisRef, text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
+                this.verses.unshift({osisRef: this.passage.osisRef, text: caps});
                 this.$.verseList.setCount(this.verses.length);
                 this.$.verseList.refresh();
-                if (verseNumber === 0)
+                if (verseNumber === 0) {
                     this.$.verseList.scrollToStart();
-                else
+                    this.hasVerseNumber = 0;
+                } else {
                     this.$.verseList.scrollToRow(verseNumber+1);
+                    this.hasVerseNumber = verseNumber+1;
+                }
                 this.renderHistory();
             } else {
                 if(inError.code && inError.code === 123) {
@@ -351,28 +366,12 @@ enyo.kind({
         return true;
     },
 
-    handleListPosition: function (inSender, inEvent) {
-        var b = inEvent.scrollBounds;
-        if(b && b.top > 0 && this.verses.length !== 0) {
-            this.rowSize = this.$.verseList.getRowSize();
-            this.offset = Math.round(b.top / this.rowSize);
-            if (this.verses[this.offset] && this.verses[this.offset].osisRef) {
-                this.setPassage({offsetRef: this.verses[this.offset].osisRef});
-            }
-        }
-        /*if (this.verses[inEvent.offset] && this.verses[inEvent.offset].osisRef) {
-            this.setPassage({offsetRef: this.verses[inEvent.offset].osisRef});
-            this.offset = inEvent.offset;
-        }
-        console.log("OFFSET", this.offset); */
-        return true;
-    },
-
     renderHistory: function (inSender, inEvent) {
         this.$.historyMenu.destroyClientControls();
         var hisItems = [];
         this.history.forEach(enyo.bind(this, function (item, idx) {
-            hisItems.push({content: api.formatOsis(item.osisRef), index: idx, osisRef: item.osisRef});
+            if(item.osisRef)
+                hisItems.push({content: api.formatOsis(item.osisRef), index: idx, osisRef: item.osisRef});
         }));
         this.$.historyMenu.createComponents(hisItems, {owner: this.$.historyMenu});
         this.$.historyMenu.render();
@@ -615,7 +614,7 @@ enyo.kind({
                 yDir = b.yDir;
 
             if(b && b.top > 0) {
-                this.rowSize = this.$.verseList.getRowSize();
+                this.rowSize = Math.round(b.height / this.verses.length); // this.$.verseList.getRowSize();
                 this.offset = Math.round(b.top / this.rowSize);
                 if (this.verses[this.offset] && this.verses[this.offset].osisRef) {
                     this.setPassage({offsetRef: this.verses[this.offset].osisRef});
@@ -648,11 +647,21 @@ enyo.kind({
         }
         if(inBottom === true) {
             //Load next verses
-            var next = sword.verseKey.next(this.verses[this.verses.length-1].osisRef.slice(0,this.verses[this.verses.length-1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification);
-            //console.log("NEXT:", next);
+            var n = this.verses[this.verses.length-1].osisRef.slice(0,this.verses[this.verses.length-1].osisRef.lastIndexOf("."));
+            if (n === "Rev.22") {
+                inCallback();
+                return;
+            }
+            var next = sword.verseKey.next(n, this.currentModule.config.Versification);
             this.loadText(next.osisRef, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
-                    this.verses.push({osisRef: next.osisRef, text: "<br><div class='caps'>" + next.chapter + "</div>"});
+                    var caps = "";
+                    if(inResult.rtol) {
+                        this.$.verseList.applyStyle("text-align", "right");
+                        caps = "<br><div class='caps-rtol'>" + next.chapter + "</div>";
+                    } else
+                        caps = "<br><div class='caps'>" + next.chapter + "</div>";
+                    this.verses.push({osisRef: next.osisRef, text: caps});
                     this.verses.push.apply(this.verses, inResult.verses);
                     if(inResult.hasOwnProperty("footnotes"))
                         this.footnotes = api.extend(this.footnotes, inResult.footnotes);
@@ -665,7 +674,12 @@ enyo.kind({
                 inCallback();
             }));
         } else {
-            var previous = sword.verseKey.previous(this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification);
+            var p = this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf("."));
+            if (p === "Gen.1") {
+                inCallback();
+                return;
+            }
+            var previous = sword.verseKey.previous(p, this.currentModule.config.Versification);
             //console.log("Previous:", previous);
             this.loadText(previous.osisRef, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
@@ -674,10 +688,21 @@ enyo.kind({
                     var l = inResult.verses.length;
                     inResult.verses.push.apply(inResult.verses, this.verses);
                     this.verses = inResult.verses;
-                    this.verses.unshift({osisRef: previous, text: "<br><div class='caps'>" + previous.chapter + "</div>"});
+                    var caps = "";
+                    if(inResult.rtol) {
+                        this.$.verseList.applyStyle("text-align", "right");
+                        caps = "<br><div class='caps-rtol'>" + previous.chapter + "</div>";
+                    } else
+                        caps = "<br><div class='caps'>" + previous.chapter + "</div>";
+                    this.verses.unshift({osisRef: previous.osisRef, text: caps});
                     this.$.verseList.setCount(this.verses.length);
                     this.$.verseList.refresh();
-                    this.$.verseList.scrollToRow(l+1);
+                    if (this.hasVerseNumber === 0)
+                        this.$.verseList.scrollToRow(l+1);
+                    else {
+                        this.$.verseList.scrollToRow(l+this.hasVerseNumber);
+                        this.hasVerseNumber = 0;
+                    }
                     this.handleUserData(previous.osisRef);
                 } else {
                     this.handleError(inError.message);

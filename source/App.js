@@ -32,7 +32,7 @@ enyo.kind({
 
     handleBack: function (inSender, inEvent) {
         this.$.panel.selectPanelByName("main");
-        if(inSender.name !== "bcSelector" && inSender.name !== "notes" && inSender.name !== "settings")
+        if(inSender.name !== "bcSelector" && inSender.name !== "notes" && inSender.name !== "settings" && inSender.name !== "dataView")
             enyo.asyncMethod(inSender, "destroy");
         return true;
     },

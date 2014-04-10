@@ -18,15 +18,6 @@ enyo.kind({
 		this.$.generator.setClientStyle(this.clientStyle);
 	},
 
-	generatePage: function() {
-		this.inherited(arguments);
-		//this.doOffset({offset: this.$.generator.getRowOffset(), rowSize: this.rowSize});
-	},
-
-	getRowSize: function () {
-		return this.rowSize;
-	},
-
 	reset: function (inIndex) {
 		this.getSelection().clear();
 		this.invalidateMetrics();
