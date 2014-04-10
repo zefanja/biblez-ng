@@ -39,7 +39,7 @@ enyo.kind({
             {classes: "toolbar-spinner", name: "tbSpinner", showing: false},
             {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
                 {kind: "onyx.IconButton", src: "assets/menu.png"},
-                {kind: "onyx.Menu", name: "actionMenu", maxHeight: "300", style: "width: 200px;", components: [
+                {kind: "onyx.Menu", name: "actionMenu", maxHeight: "400", style: "width: 200px;", components: [
                     {action: "bookmarks", classes: "menu-item", components: [
                         {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
                         {content: $L("Bookmarks"), classes: "menu-label"}
@@ -99,7 +99,7 @@ enyo.kind({
 
     currentModule: null,
     passage: {
-        osis: "Matt.1",
+        osisRef: "Matt.1",
         label: "Matt 1",
         chapter: 1
     },
@@ -229,6 +229,7 @@ enyo.kind({
             this.$.bcSelector.setModule(this.currentModule);
 
         //Load the verses
+        //console.log(this.passage, this.settings);
         if(this.passage === this.settings.lastRead || !this.settings.lastRead)
             this.handlePassage(this.passage);
         if(this.settings)
@@ -271,6 +272,7 @@ enyo.kind({
 
         //Persist current passage
         this.addToHistory(this.passage);
+        this.renderHistory();
         this.settings["lastRead"] = this.passage;
         api.put(this.settings);
 
@@ -281,6 +283,7 @@ enyo.kind({
     },
 
     handlePassage: function (inOsis) {
+        //console.log("handlePassage", inOsis, this.passage);
         this.verses = [];
         this.$.verseList.setCount(this.verses.length);
         this.$.verseList.refresh();
@@ -301,7 +304,7 @@ enyo.kind({
                 chapter: parseInt(inOsis.split(".")[1], 10)
             };
         }
-
+        this.$.btnPassage.setContent((this.passage.label) ? this.passage.label : api.formatOsis(this.passage.osisRef));
         this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
             if(!inError) {
                 this.footnotes = inResult.footnotes;
@@ -325,7 +328,6 @@ enyo.kind({
                     this.$.verseList.scrollToRow(verseNumber+1);
                     this.hasVerseNumber = verseNumber+1;
                 }
-                this.renderHistory();
             } else {
                 if(inError.code && inError.code === 123) {
                     //handle old internal module format
@@ -333,14 +335,6 @@ enyo.kind({
                 this.handleError(inError.message);
             }
         }));
-
-        //Set passage positions
-        /*this.firstTop = true;
-        this.firstBottom = true;
-        this.passagePos.middle = this.passage.osisRef;
-        this.passagePos.top = sword.verseKey.previous(this.passage.osisRef, this.currentModule.config.Versification).osisRef;
-        this.passagePos.bottom = sword.verseKey.next(this.passage.osisRef, this.currentModule.config.Versification).osisRef;
-        */
     },
 
     setVerses: function (inSender, inEvent) {

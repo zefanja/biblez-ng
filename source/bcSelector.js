@@ -16,6 +16,9 @@ enyo.kind({
                     {kind: "onyx.IconButton", src: "assets/back.png", ontap: "doBack"},
                     {content: $L("Books")}
                 ]},
+                /*{kind: "enyo.GridList", name: "bookList", onSetupItem: "setBookItems", itemFluidWidth: true, itemHeight: 44, itemMinWidth: 44, itemSpacing: 6, components: [
+                    {name: "bookItem", kind: "onyx.Button", classes: "bc-item", ontap: "handleBook"}
+                ]} */
                 {kind: "enyo.Scroller", fit: true, touch: true, components: [
                     {name: "bookRepeater", kind: "Repeater", count: 0, onSetupItem: "setBookItems", components: [
                         {name: "bookItem", kind: "onyx.Button", classes: "bc-item", ontap: "handleBook"}
