@@ -290,45 +290,6 @@
 	-ms-transform: rotate(180deg);
 }
 
-/* lib/layout/list/source/GridList.css */
-
-/*
-	Put anything you reference with "url()" in ../assets/
-	This way, you can minify your application, and just remove the "source" folder for production
-*/
-.enyo-gridlist {
-	height: 100%;
-	/*activate the GPU for compositing each page */
-  	-webkit-transform: translate3d(0, 0, 0);
-  	z-index: 1;
-}
-.enyo-gridlist-row {
-	display: inline-block;
-	background-color: #000;
-	width: auto;
-	height: auto;
-	overflow: hidden;
-	vertical-align: top;
-	border: 0;
-	padding: 0;
-	margin: 0 auto;
-  	/* TODO: Investigate if these properties cause scrolling performance issues */
-  	/*
-  	-webkit-border-radius: 5px;
-	border-radius: 5px;
-	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-	-moz-box-shadow: 0 2px 3px rgba(0,0,0,0.5);
-	-ms-box-shadow: 0 2px 3px rgba(0,0,0,0.5);
-	-webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-	*/
-}
-.enyo-gridlist-dummy {
-	display:inline-block;
-	width:auto;
-	height:auto;
-	z-index: -1;
-}
-
 /* lib/layout/list/source/GridListImageItem.css */
 
 /*
@@ -344,8 +305,8 @@
 	display: block;
 	width: 100%;
 }
-.enyo-gridlist-imageitem .caption, .enyo-gridlist-imageitem .sub-caption {
-	text-align: center;
+.enyo-gridlist-imageitem >.caption,
+.enyo-gridlist-imageitem >.sub-caption {
 	font-size: 10pt;
 	z-index: 10;
 	padding-top: 10px;
@@ -355,9 +316,37 @@
 	overflow: hidden;
 	color: #fff;
 }
+.enyo-gridlist-imageitem.centered > .caption,
+.enyo-gridlist-imageitem.centered > .sub-caption {
+	text-align: center;
+}
 .enyo-gridlist-imageitem.disabled {
 	opacity: 0.4;
 	filter: alpha(opacity=40);
+}
+
+.enyo-gridlist-imageitem.sized-image.use-caption.use-subcaption {
+	padding-bottom: 50px;
+}
+.enyo-gridlist-imageitem.sized-image.use-caption,
+.enyo-gridlist-imageitem.sized-image.use-subcaption {
+	padding-bottom: 25px;
+}
+.enyo-gridlist-imageitem.sized-image > .image {
+	width: 100%;
+	height: 100%;
+}
+.enyo-gridlist-imageitem.sized-image.use-caption.use-subcaption > .caption {
+	position: absolute;
+	bottom: 22px;
+}
+.enyo-gridlist-imageitem.sized-image > .caption {
+	position: absolute;
+	bottom: 0;
+}
+.enyo-gridlist-imageitem.sized-image > .sub-caption {
+	position: absolute;
+	bottom: 0;
 }
 
 
@@ -1774,10 +1763,21 @@
     }
 }
 
+.toolbar-spinner {
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    background: url('../assets/spinner.gif') no-repeat 0 0;
+}
+
 /* MAIN VIEW */
 .verse-view {
-    padding: 10px;
+    margin: 10px;
     font-size: 1.2em;
+}
+
+.verse-view:last-child {
+    padding-bottom: 10px;
 }
 
 .module-picker {
@@ -1951,6 +1951,14 @@
     font-weight: bold;
     text-decoration: none;
     color: #010101;
+}
+
+.caps {
+    float: left;
+    color: #934A15;
+    font-size: 4em;
+    padding-top: 4px;
+    padding-right: 8px;
 }
 
 h3, h1 {
