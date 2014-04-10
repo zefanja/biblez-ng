@@ -110,15 +110,10 @@ enyo.kind({
     settings: {id: "settings"},
     footnotes: {},
     verses: [],
-    firstTop: true,
-    firstBottom: true,
     reachedTop: false,
     reachedBottom: false,
-    passagePos: {
-        top: null,
-        middle: null,
-        bottom: null
-    },
+    offset: 0,
+    rowSize: 0,
 
     create: function () {
         this.inherited(arguments);
@@ -233,7 +228,7 @@ enyo.kind({
             this.$.bcSelector.setModule(this.currentModule);
 
         //Load the verses
-        if(this.passage === this.settings.lastRead)
+        if(this.passage === this.settings.lastRead || !this.settings.lastRead)
             this.handlePassage();
         if(this.settings)
             this.setPassage((this.settings.lastRead) ? this.settings.lastRead : this.passage);
@@ -252,11 +247,25 @@ enyo.kind({
 
     passageChanged: function (inSender, inEvent) {
         this.$.bcPopup.hide();
-        delete inEvent.originator;
-        delete inEvent.delegate;
-        delete inEvent.type;
-        this.passage = inEvent;
-        if (!this.reachedBottom && !this.reachedTop)
+        if (!inEvent.offsetRef) {
+            delete inEvent.originator;
+            delete inEvent.delegate;
+            delete inEvent.type;
+            this.passage = inEvent;
+        } else {
+            if (inEvent.offsetRef.hasOwnProperty("osisRef"))
+                this.passage = inEvent.offsetRef;
+            else {
+                inOsis = (inEvent.offsetRef.split(".").length > 2) ? inEvent.offsetRef.slice(0, inEvent.offsetRef.lastIndexOf(".")): inEvent.offsetRef;
+                this.passage = {
+                    osisRef: inOsis,
+                    label: inOsis.replace(".", " "),
+                    chapter: parseInt(inOsis.split(".")[1], 10)
+                };
+            }
+
+        }
+        if (!this.reachedBottom && !this.reachedTop && !inEvent.offsetRef)
             this.handlePassage();
 
         //Persist current passage
@@ -294,7 +303,7 @@ enyo.kind({
                 this.footnotes = inResult.footnotes;
                 this.verses = inResult.verses;
                 this.handleUserData(this.passage.osisRef);
-                this.verses.unshift({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
+                this.verses.unshift({osisRef: this.passage.osisRef, text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
                 this.$.verseList.setCount(this.verses.length);
                 this.$.verseList.refresh();
                 if (verseNumber === 0)
@@ -339,6 +348,23 @@ enyo.kind({
         else
             this.$.text.applyStyle("background-color", "none");
 
+        return true;
+    },
+
+    handleListPosition: function (inSender, inEvent) {
+        var b = inEvent.scrollBounds;
+        if(b && b.top > 0 && this.verses.length !== 0) {
+            this.rowSize = this.$.verseList.getRowSize();
+            this.offset = Math.round(b.top / this.rowSize);
+            if (this.verses[this.offset] && this.verses[this.offset].osisRef) {
+                this.setPassage({offsetRef: this.verses[this.offset].osisRef});
+            }
+        }
+        /*if (this.verses[inEvent.offset] && this.verses[inEvent.offset].osisRef) {
+            this.setPassage({offsetRef: this.verses[inEvent.offset].osisRef});
+            this.offset = inEvent.offset;
+        }
+        console.log("OFFSET", this.offset); */
         return true;
     },
 
@@ -464,7 +490,7 @@ enyo.kind({
 
     handleFont: function (inSender, inEvent) {
         this.$.verseList.applyStyle("font-family", inEvent.font);
-        this.$.verseList.reset();
+        this.$.verseList.reset(this.offset);
         api.putSetting("font", inEvent.font);
     },
 
@@ -473,7 +499,7 @@ enyo.kind({
             this.$.verseList.applyStyle("font-size", inEvent.fontSize + "em");
         else
             this.$.verseList.applyStyle("font-size", null);
-        this.$.verseList.reset();
+        this.$.verseList.reset(this.offset);
         api.putSetting("fontSize", inEvent.fontSize);
     },
 
@@ -581,67 +607,78 @@ enyo.kind({
 
     //handling infinite scrolling
     handleScrolling: function (inSender, inEvent) {
-        var cHeight = inEvent.scrollBounds.clientHeight,
-            top = inEvent.scrollBounds.top,
-            height = inEvent.scrollBounds.height,
-            yDir = inEvent.scrollBounds.yDir;
+        if(this.verses.length !== 0) {
+            var b = inEvent.scrollBounds;
+            var cHeight = b.clientHeight,
+                top = b.top,
+                height = b.height,
+                yDir = b.yDir;
 
-        //console.log(cHeight, top, height, yDir);
+            if(b && b.top > 0) {
+                this.rowSize = this.$.verseList.getRowSize();
+                this.offset = Math.round(b.top / this.rowSize);
+                if (this.verses[this.offset] && this.verses[this.offset].osisRef) {
+                    this.setPassage({offsetRef: this.verses[this.offset].osisRef});
+                }
+            }
 
-        if(!this.reachedBottom && cHeight + top > height - 200/* && yDir === 1*/) {
-            this.reachedBottom = true;
-            //console.log("BOTTOM");
-            this.addText(true, enyo.bind(this, function () {
-                this.reachedBottom = false;
-            }));
-        } else if (!this.reachedTop && top < 30/* && yDir === -1*/) {
-            this.reachedTop = true;
-            //console.log("TOP");
-            this.addText(false, enyo.bind(this, function () {
-                this.reachedTop = false;
-            }));
+            //console.log(cHeight, top, height, yDir);
+
+            if(!this.reachedBottom && cHeight + top > height - 200/* && yDir === 1*/) {
+                this.reachedBottom = true;
+                //console.log("BOTTOM");
+                this.addText(true, enyo.bind(this, function () {
+                    this.reachedBottom = false;
+                }));
+            } else if (!this.reachedTop && top < 30/* && yDir === -1*/) {
+                this.reachedTop = true;
+                //console.log("TOP");
+                this.addText(false, enyo.bind(this, function () {
+                    this.reachedTop = false;
+                }));
+            }
         }
-
+        return true;
     },
 
     addText: function(inBottom, inCallback) {
-        if(!this.currentModule) {
+        if(!this.currentModule || this.verses.length === 0) {
             inCallback();
             return;
         }
         if(inBottom === true) {
             //Load next verses
-            console.log(this.verses, this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")));
-            this.setPassage(sword.verseKey.next(this.verses[this.verses.length-1].osisRef.slice(0,this.verses[this.verses.length-1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification));
-            console.log(this.passage);
-            this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
+            var next = sword.verseKey.next(this.verses[this.verses.length-1].osisRef.slice(0,this.verses[this.verses.length-1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification);
+            //console.log("NEXT:", next);
+            this.loadText(next.osisRef, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
-                    this.verses.push({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
+                    this.verses.push({osisRef: next.osisRef, text: "<br><div class='caps'>" + next.chapter + "</div>"});
                     this.verses.push.apply(this.verses, inResult.verses);
                     if(inResult.hasOwnProperty("footnotes"))
                         this.footnotes = api.extend(this.footnotes, inResult.footnotes);
                     this.$.verseList.setCount(this.verses.length);
                     this.$.verseList.refresh();
-                    this.handleUserData(this.passage.osisRef);
+                    this.handleUserData(next.osisRef);
                 } else {
                     this.handleError(inError.message);
                 }
                 inCallback();
             }));
         } else {
-            this.setPassage(sword.verseKey.previous(this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification));
-            this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
+            var previous = sword.verseKey.previous(this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf(".")), this.currentModule.config.Versification);
+            //console.log("Previous:", previous);
+            this.loadText(previous.osisRef, enyo.bind(this, function (inError, inResult) {
                 if(!inError) {
                     if(inResult.hasOwnProperty("footnotes"))
                         this.footnotes = api.extend(this.footnotes, inResult.footnotes);
                     var l = inResult.verses.length;
                     inResult.verses.push.apply(inResult.verses, this.verses);
                     this.verses = inResult.verses;
-                    this.verses.unshift({text: "<br><div class='caps'>" + this.passage.chapter + "</div>"});
+                    this.verses.unshift({osisRef: previous, text: "<br><div class='caps'>" + previous.chapter + "</div>"});
                     this.$.verseList.setCount(this.verses.length);
                     this.$.verseList.refresh();
                     this.$.verseList.scrollToRow(l+1);
-                    this.handleUserData(this.passage.osisRef);
+                    this.handleUserData(previous.osisRef);
                 } else {
                     this.handleError(inError.message);
                 }
@@ -651,7 +688,7 @@ enyo.kind({
     },
 
     loadText: function (inOsis, inCallback) {
-        console.log(inOsis, this.passagePos);
+        //console.log("LOADTEXT", inOsis);
         this.$.tbSpinner.show();
         this.$.topTB.resized();
         this.currentModule.renderText(inOsis,
