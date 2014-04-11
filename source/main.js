@@ -74,7 +74,7 @@ enyo.kind({
             //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
         ]},
         {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
-            {name: "verseList", kind: "VerseList", touch: true, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScrollStop: "handleScrolling", components: [
+            {name: "verseList", kind: "VerseList", touch: false, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "", onScrollStop: "handleScrolling", classes: "enyo-selectable", components: [
                 {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
                 {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
                 {name: "imgNote", tag: "img", type: "note", style: "display: inline; margin: 0 3px;", showing: false, src: "assets/note.png", ontap: "handleVerseTap"}
@@ -115,10 +115,12 @@ enyo.kind({
     offset: 0,
     rowSize: 0,
     hasVerseNumber: 0,
+    timer: null,
 
     create: function () {
         this.inherited(arguments);
-        //this.$.spinner.stop();
+        if(enyo.platform.firefox)
+            this.$.verseList.onScroll = "handleScrolling";
         this.startUp();
 
         //this.$.mainPanel.setIndexDirect(2);
