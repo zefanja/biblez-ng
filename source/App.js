@@ -21,10 +21,11 @@ enyo.kind({
                 onOpenAbout: "openAbout"
             },
             {name: "bcSelector", kind: "biblez.bcSelector", onSelect: "handlePassageSelect", onBack: "handleBack"},
+            {name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"}
             /*{name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"},
             {name: "settings", kind: "biblez.settings", onBack: "handleBack", onChange: "handleSettings"},
-            {name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"},
+
             {name: "dataView", kind: "biblez.dataView", onBack: "handleBack", onVerse: "handleVerse"},
             {name: "about", kind: "biblez.about", onBack: "handleBack"}*/
         ]}
@@ -32,7 +33,7 @@ enyo.kind({
 
     handleBack: function (inSender, inEvent) {
         this.$.panel.selectPanelByName("main");
-        if(inSender.name !== "bcSelector" && inSender.name !== "notes" && inSender.name !== "settings" && inSender.name !== "dataView")
+        if(inSender.name !== "bcSelector" && inSender.name !== "notes")
             enyo.asyncMethod(inSender, "destroy");
         return true;
     },
@@ -80,12 +81,12 @@ enyo.kind({
 
     handleSettings: function (inSender, inEvent) {
         this.$.main.handleSettings(inSender, inEvent);
-        enyo.asyncMethod(inSender, "destroy");
+        enyo.asyncMethod(this.$.settings, "destroy");
         this.$.panel.selectPanelByName("main");
     },
 
     openNotes: function (inSender, inEvent) {
-        this.$.panel.createComponent({name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"}, {owner: this}).render();
+        //this.$.panel.createComponent({name: "notes", kind: "biblez.notes", onBack: "handleBack", onChange: "handleNote"}, {owner: this}).render();
         this.$.notes.setOsisRef(inEvent.osisRef);
         this.$.notes.setNoteId(inEvent.noteId);
         this.$.panel.selectPanelByName("notes");
@@ -93,7 +94,6 @@ enyo.kind({
 
     handleNote: function (inSender, inEvent) {
         this.$.main.handleNote(inSender, inEvent);
-        enyo.asyncMethod(inSender, "destroy");
         this.$.panel.selectPanelByName("main");
         return true;
     },

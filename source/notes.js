@@ -68,6 +68,7 @@ enyo.kind({
         api.removeNote({id: this.noteId, osisRef: this.osisRef}, enyo.bind(this, function (inError) {
             if(!inError) {
                 this.doChange({action: "remove", osisRef: this.osisRef});
+                this.doBack();
             } else
                 this.handleError(inError);
         }));

@@ -273,14 +273,15 @@ enyo.kind({
             this.handlePassage(this.passage);
 
         //Persist current passage
-        this.addToHistory(this.passage);
-        this.renderHistory();
-        this.settings["lastRead"] = this.passage;
-        api.put(this.settings);
-
-        this.$.btnPassage.setContent((this.passage.label) ? this.passage.label : api.formatOsis(this.passage.osisRef));
-        //Adjust the TB Icons
-        this.$.topTB.resized();
+        if ((this.settings.lastRead && this.passage.osisRef !== this.settings.lastRead.osisRef) || !this.settings.lastRead) {
+            this.addToHistory(this.passage);
+            this.renderHistory();
+            this.settings["lastRead"] = this.passage;
+            api.put(this.settings);
+            this.$.btnPassage.setContent((this.passage.label) ? this.passage.label : api.formatOsis(this.passage.osisRef));
+            //Adjust the TB Icons
+            this.$.topTB.resized();
+        }
         return true;
     },
 
@@ -375,7 +376,7 @@ enyo.kind({
 
     historySelected: function (inSender, inEvent) {
         if (!isNaN(inEvent.originator.index)) {
-            this.handlePassage(this.history[inEvent.originator.index].osisRef);
+            this.setPassage(this.history[inEvent.originator.index].osisRef);
         }
     },
 
@@ -400,7 +401,7 @@ enyo.kind({
         api.getUserData(inOsis, vmax, enyo.bind(this, function (inError, inUserData) {
             if(!inError) {
                 this.userData = api.extend(this.userData, inUserData);
-                //console.log(this.userData);
+                //console.log(this.userData, this.verses);
                 Object.keys(inUserData).forEach(enyo.bind(this, function (key) {
                     if(inUserData[key].bookmarkId) {
                         this.updateVerses(key, {bookmark: true});
@@ -444,6 +445,8 @@ enyo.kind({
     handleBookmark: function (inSender, inEvent) {
         if(inEvent.action === "remove") {
             this.updateVerses(inEvent.osisRef, {bookmark: false});
+        } else {
+            this.updateVerses(inEvent.osisRef, {bookmark: true});
         }
         this.handleUserData(inEvent.osisRef);
     },
@@ -451,6 +454,8 @@ enyo.kind({
     handleHighlight: function (inSender, inEvent) {
         if(inEvent.action === "remove") {
             this.updateVerses(inEvent.osisRef, {highlight: false});
+        } else {
+            //this.updateVerses(inEvent.osisRef, {highlight: true, color: inEvent.color});
         }
         this.handleUserData(inEvent.osisRef);
     },

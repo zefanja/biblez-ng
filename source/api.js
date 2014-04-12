@@ -11,14 +11,17 @@ var api = {
 
     //Wraps the initialization of the IndexedDB Wrapper function
     wrapper: function (inCallback) {
-        //console.log("isInitialized...", this.isInitialized);
+        //console.log("main wrapper");
         if (this.isInitialized) {
             if(inCallback) inCallback(null, this.db);
         } else {
             var self = this;
             this.db = new this.store({
                 storeName: "biblez",
-                dbVersion: 4,
+                dbVersion: 5,
+                indexes: [
+                    {name: "osisRef", keyPath: "osisRef", unique: true}
+                ],
                 onStoreReady: function() {
                     //console.log("isInitialized", self.isInitialized);
                     self.isInitialized = true;
@@ -33,7 +36,7 @@ var api = {
     },
 
     bmWrapper: function (inCallback) {
-        //console.log("isInitialized...", this.isInitialized);
+        //console.log("bm wrapper");
         if (this.isBmInitialized) {
             if(inCallback) inCallback(null, this.bmStore);
         } else {
@@ -60,7 +63,7 @@ var api = {
     },
 
     hlWrapper: function (inCallback) {
-        //console.log("isInitialized...", this.isHlInitialized);
+        //console.log("hl wrapper");
         if (this.isHlInitialized) {
             if(inCallback) inCallback(null, this.hlStore);
         } else {
@@ -86,7 +89,7 @@ var api = {
     },
 
     noteWrapper: function (inCallback) {
-        //console.log("isInitialized...", this.isHlInitialized);
+        //console.log("note wrapper");
         if (this.isNoteInitialized) {
             if(inCallback) inCallback(null, this.noteStore);
         } else {
@@ -263,6 +266,13 @@ var api = {
         }));
     },
 
+    getBatch: function (inIds, inCallback) {
+        this.wrapper(enyo.bind(this, function (inError, inDB) {
+            if(!inError) this._getBatch(inDB, inIds, inCallback);
+            else if(inCallback) inCallback(inError);
+        }));
+    },
+
     getBookmark: function (inId, inCallback) {
         this.bmWrapper(enyo.bind(this, function (inError, inDB) {
             if(!inError) this._get(inDB, inId, inCallback);
@@ -313,24 +323,27 @@ var api = {
     },
 
     getUserData: function(inOsis, inVMax, inCallback) {
-        var z=1,
-            userData = {};
+        var userData = {},
+            ids = [];
         inOsis = (inOsis.split(".").length === 2) ? inOsis : inOsis.split(".")[0] + "." + inOsis.split(".")[1];
         for (var i=1;i<inVMax+1;i++) {
-            this.get(inOsis + "." + i, function (inError, inData) {
-                if(!inError) {
-                    if(inData && inData.bookmarkId)
-                        userData[inData.id] = inData;
-                    if(inData && inData.highlightId)
-                        userData[inData.id] = inData;
-                    if(inData && inData.noteId)
-                        userData[inData.id] = inData;
-                    if(z === inVMax) inCallback(null, userData);
-                    else z++;
-                } else
-                    if(inCallback) inCallback(inError);
-            });
+            ids.push(inOsis + "." + i);
         }
+
+        this.getBatch(ids, function (inError, inData) {
+            if(!inError) {
+                inData.forEach(function (item) {
+                    if(item.bookmarkId)
+                        userData[item.id] = item;
+                    if(item.highlightId)
+                        userData[item.id] = item;
+                    if(item.noteId)
+                        userData[item.id] = item;
+                });
+                inCallback(null, userData);
+            } else
+                if(inCallback) inCallback(inError);
+        });
     },
 
     _remove: function (inDB, inId, inCallback) {

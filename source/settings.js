@@ -87,7 +87,6 @@ enyo.kind({
                 }
             }
         }));
-
     },
 
     handleSettings: function (inSender, inEvent) {
