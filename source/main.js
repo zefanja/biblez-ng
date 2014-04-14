@@ -613,6 +613,7 @@ enyo.kind({
 
     //handling infinite scrolling
     handleScrolling: function (inSender, inEvent) {
+        //FIXME implement enyo.job handling scrolling
         if(this.verses.length !== 0) {
             var b = inEvent.scrollBounds;
             var cHeight = b.clientHeight,
@@ -632,13 +633,17 @@ enyo.kind({
 
             if(!this.reachedBottom && cHeight + top > height - 200/* && yDir === 1*/) {
                 this.reachedBottom = true;
-                //console.log("BOTTOM");
+                enyo.job("updateBottom", this.bindSafely(function () {
+                    this.reachedBottom = false;
+                }), 2000);
                 this.addText(true, enyo.bind(this, function () {
                     this.reachedBottom = false;
                 }));
             } else if (!this.reachedTop && top < 30/* && yDir === -1*/) {
                 this.reachedTop = true;
-                //console.log("TOP");
+                enyo.job("updateTop", this.bindSafely(function () {
+                    this.reachedTop = false;
+                }), 2000);
                 this.addText(false, enyo.bind(this, function () {
                     this.reachedTop = false;
                 }));

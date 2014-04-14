@@ -52,20 +52,28 @@ enyo.kind({
     },
 
     moduleChanged: function (inSender, inEvent) {
-        this.books = this.module.getAllBooks();
-        this.$.bookRepeater.setCount(this.books.length);
+        this.module.getAllBooks(enyo.bind(this, function (inError, inResult) {
+            if(!inError) {
+                this.books = inResult;
+                this.$.bookRepeater.setCount(this.books.length);
+            } else {
+                console.log("getAllBooks", inError);
+            }
+        }));
     },
 
     setBookItems: function (inSender, inEvent) {
-        if (inEvent.index === 39) {
-            inEvent.item.$.bookItem.addStyles("clear: both;");
+        var item = inEvent.item,
+            idx = inEvent.index;
+        if (this.books[idx].bookNum === 39) {
+            item.$.bookItem.addStyles("clear: both;");
         }
-        if (inEvent.index >= 39) {
-            inEvent.item.$.bookItem.addClass("books-nt");
+        if (this.books[idx].bookNum >= 39) {
+            item.$.bookItem.addClass("books-nt");
         } else {
-            inEvent.item.$.bookItem.addClass("books-ot");
+            item.$.bookItem.addClass("books-ot");
         }
-        inEvent.item.$.bookItem.setContent(this.books[inEvent.index].abbrev.slice(0,4));
+        item.$.bookItem.setContent(this.books[idx].abbrev.slice(0,4));
     },
 
     handleBook: function (inSender, inEvent) {
