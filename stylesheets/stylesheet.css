@@ -114,10 +114,9 @@ a.button {
   line-height: 25px;
   font-weight: bold;
   font-size: 15px;
-  padding: 12px 8px 12px 8px;
+  padding: 12px 24px 12px 8px;
   display: block;
   float: left;
-  width: 179px;
   margin-right: 14px;
   background: #fdfdfd; /* Old browsers */
   background: -moz-linear-gradient(top,  #fdfdfd 0%, #f2f2f2 100%); /* FF3.6+ */
@@ -165,8 +164,20 @@ a.button span {
 #start-biblez span {
   background: transparent url(../images/biblez.png) 12px 50% no-repeat;
 }
+
+#fxos span {
+  background: transparent url(../images/fxos.png) 12px 50% no-repeat;
+}
+
 #view-on-github {
   margin-right: 0;
+}
+
+#app-image {
+  float: right;
+  width: 250px;
+  margin: 10px;
+  box-shadow: 0px 0px 20px #888;
 }
 
 code, pre {
@@ -319,6 +330,7 @@ footer {
   padding-bottom: 30px;
   font-size: 13px;
   color: #aaa;
+  clear: both;
 }
 
 footer a {
