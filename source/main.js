@@ -231,9 +231,9 @@ enyo.kind({
             this.$.bcSelector.setModule(this.currentModule);
 
         //Load the verses
-        //console.log(this.passage, this.settings);
-        if(this.passage === this.settings.lastRead || !this.settings.lastRead)
+        if(this.passage === this.settings.lastRead || !this.settings.lastRead) {
             this.handlePassage(this.passage);
+        }
         if(this.settings)
             this.setPassage((this.settings.lastRead) ? this.settings.lastRead : this.passage);
 
@@ -250,6 +250,7 @@ enyo.kind({
     },
 
     passageChanged: function (inSender, inEvent) {
+        //console.log(inEvent);
         this.$.bcPopup.hide();
         if (!inEvent.offsetRef) {
             delete inEvent.originator;
@@ -269,8 +270,6 @@ enyo.kind({
             }
 
         }
-        if (!this.reachedBottom && !this.reachedTop && !inEvent.offsetRef)
-            this.handlePassage(this.passage);
 
         //Persist current passage
         if ((this.settings.lastRead && this.passage.osisRef !== this.settings.lastRead.osisRef) || !this.settings.lastRead) {
@@ -282,6 +281,10 @@ enyo.kind({
             //Adjust the TB Icons
             this.$.topTB.resized();
         }
+        //console.log(!this.reachedBottom && !this.reachedTop && !inEvent.offsetRef, this.reachedBottom, this.reachedTop, inEvent.offsetRef)
+        if (!this.reachedBottom && !this.reachedTop && !inEvent.offsetRef)
+            this.handlePassage(this.passage);
+
         return true;
     },
 
@@ -338,6 +341,9 @@ enyo.kind({
                 this.handleError(inError.message);
             }
         }));
+
+        //Render History Menu
+        this.renderHistory();
     },
 
     setVerses: function (inSender, inEvent) {
@@ -376,7 +382,7 @@ enyo.kind({
 
     historySelected: function (inSender, inEvent) {
         if (!isNaN(inEvent.originator.index)) {
-            this.setPassage(this.history[inEvent.originator.index].osisRef);
+            this.setPassage(this.history[inEvent.originator.index]);
         }
     },
 
@@ -655,6 +661,7 @@ enyo.kind({
             }
             var next = sword.verseKey.next(n, this.currentModule.config.Versification);
             this.loadText(next.osisRef, enyo.bind(this, function (inError, inResult) {
+                inCallback();
                 if(!inError) {
                     var caps = "";
                     if(inResult.rtol) {
@@ -672,7 +679,7 @@ enyo.kind({
                 } else {
                     this.handleError(inError.message);
                 }
-                inCallback();
+
             }));
         } else {
             var p = this.verses[1].osisRef.slice(0,this.verses[1].osisRef.lastIndexOf("."));
@@ -683,6 +690,7 @@ enyo.kind({
             var previous = sword.verseKey.previous(p, this.currentModule.config.Versification);
             //console.log("Previous:", previous);
             this.loadText(previous.osisRef, enyo.bind(this, function (inError, inResult) {
+                inCallback();
                 if(!inError) {
                     if(inResult.hasOwnProperty("footnotes"))
                         this.footnotes = api.extend(this.footnotes, inResult.footnotes);
@@ -708,7 +716,6 @@ enyo.kind({
                 } else {
                     this.handleError(inError.message);
                 }
-                inCallback();
             }));
         }
     },
