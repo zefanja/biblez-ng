@@ -8,7 +8,7 @@ enyo.kind({
     components: [
         {kind: "onyx.MoreToolbar", layoutKind:"FittableColumnsLayout", components: [
             {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
-            {content: $L("About BibleZ")}
+            {name: "title", content: $L("About BibleZ")}
         ]},
         {kind: "enyo.Scroller", fit: true, touch: true, components: [
             {classes: "settings-container", style: "text-align: center;", components: [
@@ -25,8 +25,21 @@ enyo.kind({
         ]}
     ],
 
+    version: "",
+
+    rendered: function () {
+        this.inherited(arguments);
+        var request = navigator.mozApps.getSelf();
+        request.onsuccess = enyo.bind(this, function() {
+            if (request.result) {
+                this.version = request.result.manifest.version;
+                this.$.title.addContent(" v" + this.version);
+            }
+        });
+    },
+
     handleMail: function () {
-        window.location = "mailto:info@zefanjas.de";
+        window.location = "mailto:info@zefanjas.de?subject=BibleZ " + this.version;
     },
 
     handleBack: function() {
