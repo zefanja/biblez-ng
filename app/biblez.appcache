@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v13 - 2014-04-16
+# v14 - 2014-04-16
 CACHE:
 icon.png
 index.html
@@ -51,3 +51,6 @@ lib/onyx/images/slider-handle.png
 lib/onyx/images/spinner-dark.gif
 lib/onyx/images/spinner-light.gif
 lib/sword/sword.min.js
+
+NETWORK:
+http://zefanjas.de/apps/
