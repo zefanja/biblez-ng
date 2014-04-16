@@ -65,10 +65,14 @@ enyo.kind({
         if (!this.started) {
             this.$.spinner.show();
             api.get("repos", enyo.bind(this, function (inError, inData) {
-                if(!inData)
-                    this.getRepos();
-                else
-                    this.setupRepoPicker(inData.repos, inData.currentRepo);
+                if(!inError) {
+                    if(!inData)
+                        this.getRepos();
+                    else
+                        this.setupRepoPicker(inData.repos, inData.currentRepo);
+                } else {
+                    this.handleError(inError);
+                }
             }));
         }
         this.getInstalledModules();
@@ -115,19 +119,11 @@ enyo.kind({
     },
 
     getRepos: function () {
-        if(navigator.onLine)
+        if(navigator.onLine) {
             if(enyo.platform.firefoxOS) {
                 sword.installMgr.getRepositories(enyo.bind(this, function (inError, inRepos) {
                     if (!inError) {
-                        api.put({id: "repos", repos: inRepos, lastRepoUpdate: {time: new Date().getTime()}},
-                            enyo.bind(this, function (inError, inId) {
-                                if(!inError)
-                                    this.setupRepoPicker(inRepos);
-                                else
-                                    this.handleError(inError);
-                            })
-                        );
-
+                        this.saveRepoData(inRepos);
                     } else {
                         this.handleError(inError);
                     }
@@ -136,23 +132,28 @@ enyo.kind({
                 var xhr = new enyo.Ajax({url: "http://zefanjas.de/apps/biblezMasterlist.php"});
                 xhr.go();
                 xhr.response(this, function (inSender, inRepos) {
-                    api.put({id: "repos", repos: inRepos, lastRepoUpdate: {time: new Date().getTime()}},
-                        enyo.bind(this, function (inError, inId) {
-                            if(!inError)
-                                this.setupRepoPicker(inRepos);
-                            else
-                                this.handleError(inError);
-                        })
-                    );
+                    this.saveRepoData(inRepos);
                 });
                 xhr.error(this, function (inSender, inResponse) {
+                    console.log(inSender, inResponse);
                     this.handleError({message: "Couldn't download MasterList!"});
                 });
             }
-        else {
+        } else {
             this.$.spinner.stop();
             this.handleError({message: $L("You need an internet connection to download modules!")});
         }
+    },
+
+    saveRepoData: function (inRepos) {
+        api.put({id: "repos", repos: inRepos, lastRepoUpdate: {time: new Date().getTime()}},
+            enyo.bind(this, function (inError, inId) {
+                if(!inError)
+                    this.setupRepoPicker(inRepos);
+                else
+                    this.handleError(inError);
+            })
+        );
     },
 
     setupRepoPicker: function (inRepos, currentRepo) {
