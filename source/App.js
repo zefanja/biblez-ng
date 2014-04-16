@@ -44,14 +44,17 @@ enyo.kind({
     },
 
     openModuleManager: function (inSender, inEvent) {
-        if(!enyo.platform.firefoxOS) {
+        /*if(!enyo.platform.firefoxOS) {
             this.$.panel.createComponent({name: "moduleManagerDesktop", kind: "biblez.moduleManagerDesktop", onBack: "handleBack", onInstalled: "handleInstalledModule"}, {owner: this}).render();
             this.$.panel.selectPanelByName("moduleManagerDesktop");
         } else {
             this.$.panel.createComponent({name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"}, {owner: this}).render();
             this.$.panel.selectPanelByName("moduleManager");
             this.$.moduleManager.start();
-        }
+        }*/
+        this.$.panel.createComponent({name: "moduleManager", kind: "biblez.moduleManager", onBack: "handleBack", onInstalled: "handleInstalledModule"}, {owner: this}).render();
+        this.$.panel.selectPanelByName("moduleManager");
+        this.$.moduleManager.start();
 
         return true;
     },

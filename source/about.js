@@ -10,7 +10,7 @@ enyo.kind({
             {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
             {name: "title", content: $L("About BibleZ")}
         ]},
-        {kind: "enyo.Scroller", fit: true, touch: true, components: [
+        {kind: "enyo.Scroller", fit: true, components: [
             {classes: "settings-container", style: "text-align: center;", components: [
                 {tag: "img", src: "assets/biblez128.png"},
                 {allowHtml: true, content: "BibleZ is based on <a href='https://github.com/zefanja/swordjs' target='_blank'>swordjs</a>, a Javascript library to access the bible modules from the <a href='http://crosswire.org/sword' target='_blank'>SWORD Project</a>.<br><br>BibleZ is licenced under the GPLv3. (<a href='https://github.com/zefanja/biblez-ng' target='_blank'>Source Code</a>)"},

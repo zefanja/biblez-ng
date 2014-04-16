@@ -74,7 +74,7 @@ enyo.kind({
             //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
         ]},
         {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
-            {name: "verseList", kind: "VerseList", touch: false, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "", onScrollStop: "handleScrolling", classes: "enyo-selectable", components: [
+            {name: "verseList", kind: "VerseList", touch: false, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
                 {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
                 {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
                 {name: "imgNote", tag: "img", type: "note", style: "display: inline; margin: 0 3px;", showing: false, src: "assets/note.png", ontap: "handleVerseTap"}
@@ -119,8 +119,8 @@ enyo.kind({
 
     create: function () {
         this.inherited(arguments);
-        if(enyo.platform.firefox)
-            this.$.verseList.onScroll = "handleScrolling";
+        /*if(enyo.platform.firefox)
+            this.$.verseList.onScroll = "handleScrolling"; */
         this.startUp();
 
         //this.$.mainPanel.setIndexDirect(2);
@@ -609,9 +609,14 @@ enyo.kind({
         return false;
     },
 
+    handleOnScroll: function (inSender, inEvent) {
+        enyo.job("handleScrolling", this.bindSafely(function () {
+            this.handleScrolling(inSender, inEvent);
+        }), 100);
+    },
+
     //handling infinite scrolling
     handleScrolling: function (inSender, inEvent) {
-        //FIXME implement enyo.job handling scrolling
         if(this.verses.length !== 0) {
             var b = inEvent.scrollBounds;
             var cHeight = b.clientHeight,
@@ -623,7 +628,7 @@ enyo.kind({
                 this.rowSize = Math.round(b.height / this.verses.length); // this.$.verseList.getRowSize();
                 this.offset = Math.round(b.top / this.rowSize);
                 if (this.verses[this.offset] && this.verses[this.offset].osisRef) {
-                    //this.setPassage({offsetRef: this.verses[this.offset].osisRef});
+                    this.setPassage({offsetRef: this.verses[this.offset].osisRef});
                 }
             }
 
