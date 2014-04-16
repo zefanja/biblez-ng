@@ -17,7 +17,7 @@ enyo.kind({
             {name: "panelLang", kind: "enyo.FittableRows", components: [
                 {classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
                 {name: "langList", kind: "List", fit: true, onSetupItem: "setupLangItem", components: [
-                    {classes: "item", ontap: "handleLanguage", components: [
+                    {name: "langItem", classes: "item", ontap: "handleLanguage", components: [
                         {kind: "enyo.FittableColumns", components: [
                             {name: "langShort", classes: "item-left"},
                             {name: "langName", style: "font-style: italic;"}
@@ -28,7 +28,7 @@ enyo.kind({
             ]},
             {name: "panelModules", kind: "enyo.FittableRows", components: [
                 {name: "modList", kind: "List", fit: true, onSetupItem: "setupModItem", components: [
-                    {classes: "item", ontap: "handleModule", components: [
+                    {name: "modItem", classes: "item", ontap: "handleModule", components: [
                         {name: "modName"}
                     ]}
                 ]}
@@ -37,7 +37,6 @@ enyo.kind({
                 {kind: enyo.Scroller, fit: true, components: [
                     {name: "detailsContainer", showing: false, classes: "content-container", components: [
                         {name: "detailsName", classes: "title"},
-                        //{kind: "onyx.ProgressBar", name: "progressBar", progress: 0, showing: false, showStripes: false},
                         {kind: "onyx.Button", ontap: "installModule", name: "btnInstall", classes: "onyx-affirmative", content: $L("Install Module"), style: "margin-left: 10px;"},
                         {kind: "onyx.Button", ontap: "removeModule", name: "btnRemove", showing: false, classes: "onyx-negative", content: $L("Remove Module"), style: "margin-left: 10px;"},
                         {name: "detailsDescription", allowHtml: true, classes: "nice-padding"}
@@ -50,7 +49,7 @@ enyo.kind({
                 {},
                 {name: "repoPicker", kind: "onyx.Picker", onSelect: "handleRepoChange"}
             ]},
-            {kind: "onyx.ProgressBar", name: "progressBar", progress: 0, showing: false, showStripes: false, fit: true}
+            {kind: "onyx.ProgressBar", name: "progressBar", progress: 0, showing: false, showStripes: false, animateStripes: true, fit: true}
         ]}
     ],
 
@@ -193,13 +192,7 @@ enyo.kind({
                                 //enyo.log(inError, inModules, inModules.length);
                                 if(!inError) {
                                     if(!allModules) allModules = {id: "downloadedModules"};
-                                    allModules[inRepo.name.replace(" ", "")] = {modules: inModules, name: inRepo.name};
-                                    api.put(allModules, enyo.bind(this, function (inError, inId) {
-                                        if(inError)
-                                            this.handleError(inError);
-                                    }));
-                                    this.modules = inModules;
-                                    this.prepareLangList(this.modules);
+                                    this.handleGotRemoteModules(allModules, inModules, inRepo);
 
                                 } else {
                                     this.handleError((inError.message) ? inError.message : inError);
@@ -211,16 +204,9 @@ enyo.kind({
                             xhr.response(this, function (inSender, inModules) {
                                 inModules = api.cleanArray(inModules).sort(api.dynamicSortMultiple("Lang", "moduleKey"));
                                 if(!allModules) allModules = {id: "downloadedModules"};
-                                    allModules[inRepo.name.replace(" ", "")] = {modules: inModules, name: inRepo.name};
-                                    api.put(allModules, enyo.bind(this, function (inError, inId) {
-                                        if(inError)
-                                            this.handleError(inError);
-                                    }));
-                                    this.modules = inModules;
-                                    this.prepareLangList(this.modules);
+                                this.handleGotRemoteModules(allModules, inModules, inRepo);
                             });
                             xhr.error(this, function (inSender, inResponse) {
-                                //console.log(inSender, inResponse);
                                 this.handleError({message: "Couldn't download Modules!"});
                             });
                         }
@@ -233,6 +219,16 @@ enyo.kind({
                 this.handleError(inError);
         }));
 
+    },
+
+    handleGotRemoteModules: function(allModules, inModules, inRepo) {
+        allModules[inRepo.name.replace(" ", "")] = {modules: inModules, name: inRepo.name};
+        api.put(allModules, enyo.bind(this, function (inError, inId) {
+            if(inError)
+                this.handleError(inError);
+        }));
+        this.modules = inModules;
+        this.prepareLangList(this.modules);
     },
 
     prepareLangList: function (inModules) {
@@ -248,7 +244,7 @@ enyo.kind({
         }));
         this.$.panelLang.reflow();
         this.$.langList.setCount(this.lang.length);
-        this.$.langList.refresh();
+        this.$.langList.reset();
 
 
     },
@@ -257,7 +253,7 @@ enyo.kind({
         var data = this.lang[inEvent.index];
         this.$.langShort.setContent(data.lang);
         this.$.langName.setContent(languages[data.lang]);
-        //this.$.index.setContent(inEvent.index);
+        this.$.langItem.addRemoveClass("list-selected", inSender.isSelected(inEvent.index));
     },
 
     handleLanguage: function(inSender, inEvent) {
@@ -270,13 +266,14 @@ enyo.kind({
                 this.langModules.push(module);
         }));
         this.$.modList.setCount(this.langModules.length);
-        this.$.modList.refresh();
+        this.$.modList.reset();
     },
 
     // Module List //
     setupModItem: function (inSender, inEvent) {
         var data = this.langModules[inEvent.index];
         this.$.modName.setContent(data.Description);
+        this.$.modItem.addRemoveClass("list-selected", inSender.isSelected(inEvent.index));
     },
 
     handleModule: function (inSender, inEvent) {
@@ -303,26 +300,14 @@ enyo.kind({
         this.$.progressBar.show();
         this.$.bottomTB.render();
         if(enyo.platform.firefoxOS) {
-            sword.installMgr.installModule(this.currentModule.url, enyo.bind(this, function (inError, inModule) {
-                if (!inError) {
-                    this.doInstalled();
-                    this.getInstalledModules();
-                    this.$.btnInstall.hide();
-                    this.$.btnRemove.show();
-                } else {
-                    console.log(inError);
-                    this.handleError(inError);
-                    this.$.btnInstall.show();
-                    this.$.btnRemove.hide();
-                }
-                //console.log(inError, inModule);
-
-
-            }),
+            this.$.progressBar.setShowStripes(false);
+            sword.installMgr.installModule(this.currentModule.url,
+                enyo.bind(this, this.handleInstalled),
             enyo.bind(this, function (inEvent) {
                 this.$.progressBar.animateProgressTo(inEvent.loaded/inEvent.total*100);
             }));
         } else {
+            this.$.progressBar.setShowStripes(true);
             var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
             var url = "http://zefanjas.de/apps/biblezGetModule.php?modKey="+this.currentModule.moduleKey+"&type="+this.currentRepo.type;
             xhr.open('GET', url, true);
@@ -331,25 +316,13 @@ enyo.kind({
                 //console.log(xhr.readyState, evt, xhr.status);
                 if (xhr.readyState == 4) {
                     if(xhr.status === 200)
-                        sword.installMgr.installModule(xhr.response, enyo.bind(this, function (inError, inModule) {
-                            if (!inError) {
-                                this.doInstalled();
-                                this.getInstalledModules();
-                                this.$.btnInstall.hide();
-                                this.$.btnRemove.show();
-                            } else {
-                                this.handleError((inError.message) ? inError.message : inError);
-                            }
-                            this.$.progressBar.hide();
-                            this.$.progressBar.setProgress(0);
-                            this.$.btnInstall.setDisabled(false);
-                        }));
+                        sword.installMgr.installModule(xhr.response, enyo.bind(this, this.handleInstalled));
                     else
                         this.handleError({message: "Couldn't download module.", error: xhr.status});
                 }
             });
             xhr.onprogress = enyo.bind(this, function (inEvent) {
-                this.$.progressBar.animateProgressTo(inEvent.loaded/4000000*100);
+                this.$.progressBar.animateProgressTo(100);
             });
             xhr.onerror = enyo.bind(this, function (inError) {
                 this.handleError({message: "Couldn't download Module!"});
@@ -359,6 +332,23 @@ enyo.kind({
             xhr.send(null);
         }
 
+    },
+
+    handleInstalled: function (inError, inModule) {
+        if (!inError) {
+            this.doInstalled();
+            this.getInstalledModules();
+            this.$.btnInstall.hide();
+            this.$.btnRemove.show();
+        } else {
+            console.log(inError);
+            this.handleError(inError);
+            this.$.btnInstall.show();
+            this.$.btnRemove.hide();
+        }
+        this.$.progressBar.hide();
+        this.$.progressBar.setProgress(0);
+        this.$.btnInstall.setDisabled(false);
     },
 
     removeModule: function (inSender, inEvent) {
