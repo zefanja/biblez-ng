@@ -77,7 +77,7 @@ enyo.kind({
             {name: "verseList", kind: "VerseList", touch: false, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
                 {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
                 {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
-                {name: "imgNote", tag: "img", type: "note", style: "display: inline; margin: 0 3px;", showing: false, src: "assets/note.png", ontap: "handleVerseTap"}
+                {name: "imgNote", content: "", allowHtml: true, style: "display: inline; margin: 0 3px;", showing: false, ontap: "handleVerseTap", onclick: "handleVerseTap"}
             ]}
 
             /*{},
@@ -354,9 +354,10 @@ enyo.kind({
         else
             this.$.imgBm.hide();
         //Notes
-        if(item.note)
+        if(item.note) {
+            this.$.imgNote.setContent("<a href='?type=note&osisRef=" + item.osisRef + "&noteId=" + item.noteId + "'><img src='assets/note.png'></a>");
             this.$.imgNote.show();
-        else
+        } else
             this.$.imgNote.hide();
         //Highlights
         if(item.highlight)
@@ -434,7 +435,7 @@ enyo.kind({
                     api.getNotes(noteKeys, enyo.bind(this, function (inError, inNotes) {
                         if(!inError) {
                             inNotes.forEach(enyo.bind(this, function (note) {
-                                this.updateVerses(note.osisRef, {note: true, type: "note", noteId: note.id});
+                                this.updateVerses(note.osisRef, {note: true, type: "note", osisRef: note.osisRef, noteId: note.id});
                             }));
                         } else
                             this.handleError(inError);
@@ -531,6 +532,7 @@ enyo.kind({
                 attributes[item[0]] = item[1];
             });
         }
+        //console.log(attributes);
         if(attributes.type === "verseNum") {
             this.$.versePopup.setOsisRef(attributes.osisRef);
             if(this.userData.hasOwnProperty(attributes.osisRef)) {
@@ -560,14 +562,14 @@ enyo.kind({
             this.$.versePopup.setLabels();
             this.$.versePopup.showAtEvent(inEvent);
         } else if (attributes.type === "note") {
-            /*api.getNote(parseInt(attributes.noteId, 10), enyo.bind(this, function (inError, inNote) {
+            api.getNote(parseInt(attributes.noteId, 10), enyo.bind(this, function (inError, inNote) {
                 if(!inError) {
                     this.$.notePopup.setText(inNote.text);
                     this.$.notePopup.setOsisRef(inNote.osisRef);
                     this.$.notePopup.showAtEvent(inEvent);
                 } else
                     this.handleError(inError);
-            }));*/
+            }));
         } else if (attributes.type === "footnote") {
             this.footnotes[attributes.osisRef].forEach(enyo.bind(this, function(item) {
                 if(item.n === attributes.n)
@@ -596,7 +598,7 @@ enyo.kind({
         }
 
         //Handle user notes
-        if(inSender.type === "note") {
+        /*if(inSender.type === "note") {
             api.getNote(parseInt(this.verses[inEvent.index].noteId, 10), enyo.bind(this, function (inError, inNote) {
                 if(!inError) {
                     this.$.notePopup.setText(inNote.text);
@@ -605,7 +607,7 @@ enyo.kind({
                 } else
                     this.handleError(inError);
             }));
-        }
+        }*/
         return false;
     },
 
