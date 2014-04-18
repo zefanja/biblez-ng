@@ -73,28 +73,16 @@ enyo.kind({
             ]},
             //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
         ]},
-        {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
-            {name: "verseList", kind: "VerseList", touch: false, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
-                {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
-                {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
-                {name: "imgNote", content: "", allowHtml: true, style: "display: inline; margin: 0 3px;", showing: false, ontap: "handleVerseTap", onclick: "handleVerseTap"}
-            ]}
-
-            /*{},
-            {kind: "FittableColumns", noStretch: true, components: [
-                {fit: true},
-                {content: "< Previous", classes: "chapter-nav chapter-nav-left"}
-            ]},*/
-            /*{name: "verseScroller", kind: "enyo.Scroller", onScrollStop: "handleScrolling", thumb: false, touch: true, touchOverscroll: false, fit: true, components: [
-                //{classes: "center", components: [{kind: "onyx.Spinner", name: "spinner", classes: "onyx-light center"}]},
-                //{name: "main", classes: "verse-view", allowHtml: true, onclick: "handleVerseTap"}
-            ]},*/
-            /*{kind: "FittableColumns", noStretch: true, components: [
-                {content: "Next >", classes: "chapter-nav chapter-nav-right"},
-                {fit: true}
+        {name: "mainView", kind: "enyo.FittableColumns", fit: true, components: [
+            {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+                {name: "verseList", kind: "VerseList", touch: true, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
+                    {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
+                    {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
+                    {name: "imgNote", content: "", allowHtml: true, style: "display: inline; margin: 0 3px;", showing: false, ontap: "handleVerseTap", onclick: "handleVerseTap"}
+                ]}
             ]},
-            {}*/
-        ]},
+            {name: "sidebar", content: "", classes: "sidebar", showing: false, style: "width: 320px;"}
+        ]}
     ],
 
     currentModule: null,
@@ -263,7 +251,7 @@ enyo.kind({
     },
 
     passageChanged: function (inSender, inEvent) {
-        //console.log("passagedChanged: ", inEvent);
+        //console.log("passageChanged: ", inEvent);
         this.$.bcPopup.hide();
         if (!inEvent.offsetRef) {
             delete inEvent.originator;
@@ -303,16 +291,17 @@ enyo.kind({
         return true;
     },
 
-    handlePassage: function (inOsis) {
-        //console.log("handlePassage", inOsis, this.passage);
+    handlePassage: function (inOsis, inEvent) {
+        //console.log("handlePassage", inOsis, inEvent, this.passage);
         this.verses = [];
         this.$.verseList.setCount(this.verses.length);
         this.$.verseList.refresh();
 
         var verseNumber = this.passage.verseNumber ? this.passage.verseNumber : 0;
 
-        if (typeof inOsis === "string") {
+        if (typeof inOsis === "string" || (inEvent && inEvent.osisRef && !inEvent.label && !inEvent.chapter)) {
             //BibleZ currently supports only Book.Chapter Osis passages in the mainView
+            inOsis = (inEvent.osisRef) ? inEvent.osisRef : inOsis;
             if(inOsis.split(".").length > 2) {
                 verseNumber = parseInt(inOsis.slice(inOsis.lastIndexOf(".")+1, inOsis.length), 10);
                 inOsis = inOsis.slice(0, inOsis.lastIndexOf("."));
@@ -324,7 +313,10 @@ enyo.kind({
                 label: inOsis.replace(".", " "),
                 chapter: parseInt(inOsis.split(".")[1], 10)
             };
+            this.settings["lastRead"] = this.passage;
+            api.put(this.settings);
         }
+
         this.$.btnPassage.setContent((this.passage.label) ? this.passage.label : api.formatOsis(this.passage.osisRef));
         this.loadText(this.passage.osisRef, enyo.bind(this, function (inError, inResult) {
             if(!inError) {
@@ -776,8 +768,27 @@ enyo.kind({
             this.doOpenAbout();
         else if(inEvent.originator.action === "font")
             this.handleFontMenu();
-        else
-            this.doOpenDataView({section: inEvent.originator.action});
+        else {
+            if(enyo.Panels.isScreenNarrow())
+                this.doOpenDataView({section: inEvent.originator.action});
+            else {
+                this.$.sidebar.show();
+                this.$.mainView.resized();
+                this.$.verseList.reset(this.offset);
+                if(!this.$.dataView) {
+                    this.$.sidebar.createComponent({name: "dataView", kind: "biblez.dataView", onBack: "handleBack", onVerse: "handlePassage"}, {owner: this}).render();
+                    this.$.dataView.showHideButton();
+                }
+                this.$.dataView.updateSection(inEvent.originator.action);
+            }
+        }
+    },
+
+    handleBack: function (inSender, inEvent) {
+        this.$.sidebar.destroyClientControls();
+        this.$.sidebar.hide();
+        this.$.mainView.resized();
+        this.$.verseList.reset(this.offset);
     },
 
     handlePanelIndex: function (inSender, inEvent) {
@@ -802,6 +813,14 @@ enyo.kind({
         }
         else if (orientation === "landscape-primary" || orientation === "landscape-secondary" ) {
             this.$.topTB.hide();
+        }
+    },
+
+    resizeHandler: function () {
+        this.inherited(arguments);
+        if(enyo.Panels.isScreenNarrow()) {
+            this.$.sidebar.destroyClientControls();
+            this.$.sidebar.hide();
         }
     },
 

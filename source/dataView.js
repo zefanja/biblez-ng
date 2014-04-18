@@ -12,7 +12,8 @@ enyo.kind({
     components: [
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {kind: "onyx.MoreToolbar", layoutKind:"FittableColumnsLayout", components: [
-            {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
+            {name: "btBack", kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
+            {name: "btHide", kind: "onyx.IconButton", src: "assets/hide.png", showing: false, ontap: "handleBack"},
             {kind: "onyx.RadioGroup", onActivate:"sectionActivated", classes: "center", fit: true, defaultKind: "onyx.IconButton", components: [
                 {name: "rbBm", src: "assets/bookmarksTB.png", section: "bookmarks", style: "margin: 0 10px;"},
                 {name: "rbNotes", src: "assets/notesTB.png", section: "notes", style: "margin: 0 10px;"},
@@ -31,6 +32,11 @@ enyo.kind({
     ],
 
     data: [],
+
+    showHideButton: function () {
+        this.$.btHide.show();
+        this.$.btBack.hide();
+    },
 
     sectionActivated: function (inSender, inEvent) {
         if (inEvent.originator.getActive()) {
@@ -96,15 +102,19 @@ enyo.kind({
     setupItem: function(inSender, inEvent) {
         var data = this.data[inEvent.index];
         this.$.itemOsis.setContent(api.formatOsis(data.osisRef));
-        if(this.section === "highlights")
+        if(this.section === "highlights") {
             this.$.item.applyStyle("background-color", data.color);
-        else
+            this.$.itemOsis.addRemoveClass("list-selected-bold", inSender.isSelected(inEvent.index));
+        } else {
             this.$.item.applyStyle("background-color", null);
+            this.$.itemOsis.addRemoveClass("list-selected-bold", inSender.isSelected(inEvent.index));
+        }
         if(this.section === "notes")
             this.$.itemText.setContent(data.text);
         else
             this.$.itemText.setContent("");
-        //this.$.index.setContent(inEvent.index);
+        this.$.item.addRemoveClass("list-selected", inSender.isSelected(inEvent.index));
+
     },
 
     handleListTap: function (inSender, inEvent) {
