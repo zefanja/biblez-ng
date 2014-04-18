@@ -27,7 +27,7 @@ enyo.kind({
         {kind: "onyx.Toolbar", showing: false, classes: "main-toolbar", noStretch: true, name: "topTB", layoutKind: "FittableColumnsLayout", components: [
             {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
                 {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
-                {kind: "onyx.Menu", maxHeight: "300", name: "moduleMenu"}
+                {kind: "onyx.Menu", maxHeight: "300", name: "moduleMenu", style: "width: 250px;"}
             ]},
             {kind: "onyx.Button", name: "btnPassage", classes: "tb-button", ontap: "handleBcSelector"},
             {name: "historySelector", kind: "onyx.MenuDecorator", onSelect: "historySelected", components: [
@@ -199,27 +199,39 @@ enyo.kind({
             inModules = this.modules;
         if(this.settings.lastModule)
             lastModule = this.settings.lastModule;
+        //console.log(this.modules);
         this.$.moduleMenu.destroyClientControls();
         var mods = [];
         this.currentModule = null;
         this.modules.forEach(enyo.bind(this, function (mod, idx) {
             if ((lastModule && lastModule === mod.modKey)) {
                 this.$.btnModules.setContent(lastModule);
-                mods.push({active: true, components: [
+                mods.push({classes: "menu-modules-item", index: idx, active: true, components: [
+                    {kind: "onyx.IconButton", src: "assets/checkmark.png", style: "float: right;"},
                     {content: mod.config.moduleKey, index: idx},
-                    {kind: "onyx.IconButton", src: "assets/checkmark.png", style: "float: right;"}
+                    {tag: "br"},
+                    {content: mod.config.description, classes: "menu-module-title", index: idx}
+
                 ]});
                 this.currentModule = mod;
             } else
-                mods.push({content: mod.config.moduleKey, index: idx});
+                mods.push({classes: "menu-modules-item", index: idx, components: [
+                    {content: mod.config.moduleKey, index: idx},
+                    {tag: "br"},
+                    {content: mod.config.description, classes: "menu-module-title", index: idx}
+                ]});
         }));
         if(this.currentModule === null) {
             this.currentModule = this.modules[0];
             mods[0]["active"] = true;
             mods[0]["components"] = [
+                {kind: "onyx.IconButton", src: "assets/checkmark.png", style: "float: right;"},
                 {content: this.currentModule.modKey, index: 0},
-                {kind: "onyx.IconButton", src: "assets/checkmark.png", style: "float: right;"}
+                {tag: "br"},
+                {content: mod.config.description, classes: "menu-module-title", index: 0}
             ];
+            mods[0]["classes"] = "menu-modules-item";
+            mods[0]["index"] = 0;
             this.$.btnModules.setContent(this.currentModule.modKey);
             this.settings["lastModule"] = this.currentModule.modKey;
         }
@@ -232,6 +244,7 @@ enyo.kind({
 
         //Load the verses
         if(this.passage === this.settings.lastRead || !this.settings.lastRead) {
+            api.put(this.settings);
             this.handlePassage(this.passage);
         }
         if(this.settings)
@@ -240,7 +253,7 @@ enyo.kind({
     },
 
     moduleSelected: function (inSender, inEvent) {
-        //console.log(inEvent.originator.index, this.settings);
+        //console.log(inEvent.originator.index, inEvent);
         if (!isNaN(inEvent.originator.index)) {
             this.currentModule = this.modules[inEvent.originator.index];
             this.settings["lastModule"] = this.currentModule.modKey;
@@ -281,6 +294,7 @@ enyo.kind({
             //Adjust the TB Icons
             this.$.topTB.resized();
         }
+
         //console.log(!this.reachedBottom && !this.reachedTop && !inEvent.offsetRef, this.reachedBottom, this.reachedTop, inEvent.offsetRef)
         if (!this.reachedBottom && !this.reachedTop && !inEvent.offsetRef) {
             this.handlePassage(this.passage);

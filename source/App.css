@@ -87,6 +87,18 @@
     padding: 5px 10px;
 }
 
+.menu-modules-item {
+    border-top: 1px solid #666;
+}
+
+.menu-modules-item:first-child {
+    border-top: none;
+}
+
+.menu-module-title {
+    font-size: .7em;
+}
+
 .active-verse {
     background-color: yellow;
     transition: background-color 500ms linear;
