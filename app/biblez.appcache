@@ -1,10 +1,11 @@
 CACHE MANIFEST
-# v16 - 2014-04-18
+# v18 - 2014-04-24
 CACHE:
 icon.png
 index.html
 assets/add.png
 assets/back.png
+assets/hide.png
 assets/biblez128.png
 assets/biblez256.png
 assets/bookmark.png
