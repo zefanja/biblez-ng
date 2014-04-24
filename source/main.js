@@ -22,63 +22,65 @@ enyo.kind({
         {name: "footnotePopup", kind: "biblez.footnotePopup"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
         {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
-            {kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
+            //{kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
         ]},
-        {kind: "onyx.Toolbar", showing: false, classes: "main-toolbar", noStretch: true, name: "topTB", layoutKind: "FittableColumnsLayout", components: [
-            {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
-                {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
-                {kind: "onyx.Menu", maxHeight: "300", name: "moduleMenu", style: "width: 250px;"}
-            ]},
-            {kind: "onyx.Button", name: "btnPassage", classes: "tb-button", ontap: "handleBcSelector"},
-            {name: "historySelector", kind: "onyx.MenuDecorator", onSelect: "historySelected", components: [
-                //Clock Icon by Thomas Le Bas from The Noun Project
-                {kind: "onyx.IconButton", name: "btnHistory", src: "assets/history.png"},
-                {kind: "onyx.Menu", maxHeight: "300", name: "historyMenu"}
-            ]},
-            {fit: true},
-            {classes: "toolbar-spinner", name: "tbSpinner", showing: false},
-            {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
-                {kind: "onyx.IconButton", src: "assets/menu.png"},
-                {kind: "onyx.Menu", name: "actionMenu", maxHeight: "400", style: "width: 200px;", components: [
-                    {action: "bookmarks", classes: "menu-item", components: [
-                        {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
-                        {content: $L("Bookmarks"), classes: "menu-label"}
+        {kind: "enyo.FittableColumns", fit: true, name: "mainView", components: [
+            {kind: "enyo.FittableRows", fit: true, components: [
+                {kind: "onyx.Toolbar", showing: false, classes: "main-toolbar", noStretch: true, name: "topTB", layoutKind: "FittableColumnsLayout", components: [
+                    {name: "moduleSelector", kind: "onyx.MenuDecorator", onSelect: "moduleSelected", components: [
+                        {kind: "onyx.Button", name: "btnModules", classes: "tb-button", style: "background-color: #934A15;"},
+                        {kind: "onyx.Menu", maxHeight: "300", name: "moduleMenu", style: "width: 250px;"}
                     ]},
-                    {action: "notes", classes: "menu-item", components: [
-                        {kind: "onyx.IconButton", src: "assets/notes.png"},
-                        {content: $L("Notes"), classes: "menu-label"}
+                    {kind: "onyx.Button", name: "btnPassage", classes: "tb-button", ontap: "handleBcSelector"},
+                    {name: "historySelector", kind: "onyx.MenuDecorator", onSelect: "historySelected", components: [
+                        //Clock Icon by Thomas Le Bas from The Noun Project
+                        {kind: "onyx.IconButton", name: "btnHistory", src: "assets/history.png"},
+                        {kind: "onyx.Menu", maxHeight: "300", name: "historyMenu"}
                     ]},
-                    {action: "highlights", classes: "menu-item", components: [
-                        {kind: "onyx.IconButton", src: "assets/highlights.png"},
-                        {content: $L("Highlights"), classes: "menu-label"}
+                    {fit: true},
+                    {classes: "toolbar-spinner", name: "tbSpinner", showing: false},
+                    {name: "actionSelector", kind: "onyx.MenuDecorator", onSelect: "actionSelected", components: [
+                        {kind: "onyx.IconButton", src: "assets/menu.png"},
+                        {kind: "onyx.Menu", name: "actionMenu", maxHeight: "400", style: "width: 200px;", components: [
+                            {action: "bookmarks", classes: "menu-item", components: [
+                                {kind: "onyx.IconButton", src: "assets/bookmarks.png"},
+                                {content: $L("Bookmarks"), classes: "menu-label"}
+                            ]},
+                            {action: "notes", classes: "menu-item", components: [
+                                {kind: "onyx.IconButton", src: "assets/notes.png"},
+                                {content: $L("Notes"), classes: "menu-label"}
+                            ]},
+                            {action: "highlights", classes: "menu-item", components: [
+                                {kind: "onyx.IconButton", src: "assets/highlights.png"},
+                                {content: $L("Highlights"), classes: "menu-label"}
+                            ]},
+                            {classes: "onyx-menu-divider"},
+                            {action: "moduleManager", classes: "menu-item", components: [
+                                {kind: "onyx.IconButton", src: "assets/add.png"},
+                                {content: $L("Module Manager"), classes: "menu-label"}
+                            ]},
+                            {action: "preferences", classes: "menu-item", components: [
+                                {kind: "onyx.IconButton", src: "assets/settings.png"},
+                                {content: $L("Preferences"), classes: "menu-label"}
+                            ]},
+                            {action: "font", classes: "menu-item", components: [
+                                {kind: "onyx.IconButton", src: "assets/font.png"},
+                                {content: $L("Font"), classes: "menu-label"}
+                            ]},
+                            {action: "about", classes: "menu-item", components: [
+                                {kind: "onyx.IconButton", src: "assets/info.png"},
+                                {content: $L("About"), classes: "menu-label"}
+                            ]}
+                        ]}
                     ]},
-                    {classes: "onyx-menu-divider"},
-                    {action: "moduleManager", classes: "menu-item", components: [
-                        {kind: "onyx.IconButton", src: "assets/add.png"},
-                        {content: $L("Module Manager"), classes: "menu-label"}
-                    ]},
-                    {action: "preferences", classes: "menu-item", components: [
-                        {kind: "onyx.IconButton", src: "assets/settings.png"},
-                        {content: $L("Preferences"), classes: "menu-label"}
-                    ]},
-                    {action: "font", classes: "menu-item", components: [
-                        {kind: "onyx.IconButton", src: "assets/font.png"},
-                        {content: $L("Font"), classes: "menu-label"}
-                    ]},
-                    {action: "about", classes: "menu-item", components: [
-                        {kind: "onyx.IconButton", src: "assets/info.png"},
-                        {content: $L("About"), classes: "menu-label"}
+                    //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
+                ]},
+                {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
+                    {name: "verseList", kind: "VerseList", touch: false, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
+                        {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
+                        {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
+                        {name: "imgNote", content: "", allowHtml: true, style: "display: inline; margin: 0 3px;", showing: false, ontap: "handleVerseTap", onclick: "handleVerseTap"}
                     ]}
-                ]}
-            ]},
-            //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
-        ]},
-        {name: "mainView", kind: "enyo.FittableColumns", fit: true, components: [
-            {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
-                {name: "verseList", kind: "VerseList", touch: true, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
-                    {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
-                    {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
-                    {name: "imgNote", content: "", allowHtml: true, style: "display: inline; margin: 0 3px;", showing: false, ontap: "handleVerseTap", onclick: "handleVerseTap"}
                 ]}
             ]},
             {name: "sidebar", content: "", classes: "sidebar", showing: false, style: "width: 320px;"}
@@ -181,16 +183,18 @@ enyo.kind({
         }));
     },
 
-    renderModuleMenu: function (inModules) {
+    renderModuleMenu: function (inModules, inRenderAgain) {
         var lastModule = null;
         if(!inModules)
             inModules = this.modules;
         if(this.settings.lastModule)
             lastModule = this.settings.lastModule;
-        //console.log(this.modules);
+
+
         this.$.moduleMenu.destroyClientControls();
         var mods = [];
         this.currentModule = null;
+
         this.modules.forEach(enyo.bind(this, function (mod, idx) {
             if ((lastModule && lastModule === mod.modKey)) {
                 this.$.btnModules.setContent(lastModule);
@@ -216,19 +220,17 @@ enyo.kind({
                 {kind: "onyx.IconButton", src: "assets/checkmark.png", style: "float: right;"},
                 {content: this.currentModule.modKey, index: 0},
                 {tag: "br"},
-                {content: mod.config.description, classes: "menu-module-title", index: 0}
+                {content: this.currentModule.config.description, classes: "menu-module-title", index: 0}
             ];
             mods[0]["classes"] = "menu-modules-item";
             mods[0]["index"] = 0;
             this.$.btnModules.setContent(this.currentModule.modKey);
             this.settings["lastModule"] = this.currentModule.modKey;
         }
+
         this.$.moduleMenu.createComponents(mods, {owner: this.$.moduleMenu});
         this.$.moduleMenu.render();
-
         this.doModuleChanged({module: this.currentModule});
-        if(enyo.platform.firefox || enyo.platform.androidFirefox)
-            this.$.bcSelector.setModule(this.currentModule);
 
         //Load the verses
         if(this.passage === this.settings.lastRead || !this.settings.lastRead) {
@@ -250,8 +252,16 @@ enyo.kind({
         }
     },
 
+    handleModuleTree: function (inSender, inEvent) {
+        this.currentModule = inEvent.module;
+        this.settings["lastModule"] = this.currentModule.modKey;
+        this.renderModuleMenu(null, false);
+    },
+
     passageChanged: function (inSender, inEvent) {
         //console.log("passageChanged: ", inEvent);
+        if(this.$.bcSelector)
+            this.$.bcPopup.destroyClientControls();
         this.$.bcPopup.hide();
         if (!inEvent.offsetRef) {
             delete inEvent.originator;
@@ -301,7 +311,7 @@ enyo.kind({
 
         if (typeof inOsis === "string" || (inEvent && inEvent.osisRef && !inEvent.label && !inEvent.chapter)) {
             //BibleZ currently supports only Book.Chapter Osis passages in the mainView
-            inOsis = (inEvent.osisRef) ? inEvent.osisRef : inOsis;
+            inOsis = (inEvent && inEvent.osisRef) ? inEvent.osisRef : inOsis;
             if(inOsis.split(".").length > 2) {
                 verseNumber = parseInt(inOsis.slice(inOsis.lastIndexOf(".")+1, inOsis.length), 10);
                 inOsis = inOsis.slice(0, inOsis.lastIndexOf("."));
@@ -348,6 +358,7 @@ enyo.kind({
 
         //Render History Menu
         this.renderHistory();
+        return true;
     },
 
     setVerses: function (inSender, inEvent) {
@@ -485,13 +496,17 @@ enyo.kind({
     },
 
     handleBcSelector: function (inSender, inEvent) {
-        if(enyo.platform.firefox || enyo.platform.androidFirefox) {
+        if(!enyo.Panels.isScreenNarrow()) {
+            this.$.bcPopup.createComponent({kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}, {owner: this}).render();
+            this.$.bcSelector.setModule(this.currentModule);
             this.$.bcPopup.showAtEvent(inEvent);
         } else
             this.doOpenBC();
     },
 
     closePopup: function (inSender, inEvent) {
+        if(this.$.bcSelector)
+            this.$.bcPopup.destroyClientControls();
         this.$.bcPopup.hide();
     },
 
@@ -789,6 +804,17 @@ enyo.kind({
         this.$.sidebar.hide();
         this.$.mainView.resized();
         this.$.verseList.reset(this.offset);
+        return true;
+    },
+
+    handleBackLeft: function (inSender, inEvent) {
+        this.$.leftBar.destroyClientControls();
+        this.$.leftBar.hide();
+        this.$.moduleSelector.show();
+        this.$.btnPassage.applyStyle("margin-left", "6px;");
+        this.$.mainView.resized();
+        this.$.verseList.reset(this.offset);
+        return true;
     },
 
     handlePanelIndex: function (inSender, inEvent) {
