@@ -1,7 +1,7 @@
 enyo.kind({
     name: "biblez.notes",
     kind: "enyo.FittableRows",
-    fit: true,
+    classes: "enyo-fit",
     events: {
         onBack: "",
         onChange: ""
@@ -13,13 +13,13 @@ enyo.kind({
     },
     components: [
         {name: "messagePopup", kind: "onyx.Popup", scrim: true, centered: true, floating: true, classes: "message-popup"},
-        {kind: "onyx.MoreToolbar", components: [
+        {kind: "onyx.Toolbar", components: [
             {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
             {name: "label", content: $L("Notes")}
         ]},
-        {kind: "enyo.Scroller", touch: true, fit: true, style: "text-align: center;", components: [
+        {kind: "enyo.Scroller", fit: true, style: "text-align: center;", components: [
             {kind: "onyx.InputDecorator", style: "margin: 10px;", alwaysLooksFocused: true, components: [
-                {name: "noteInput", kind: "onyx.RichText", classes: "note-input", placeholder: "Enter your note here", allowHmtl: false}
+                {name: "noteInput", kind: "onyx.RichText", classes: "note-input", placeholder: "Enter your note here", allowHmtl: false, oninput: "handleInput"}
             ]},
             {tag: "br"},
             {name: "btDelete", kind: "onyx.Button", content: $L("Delete Note"), disabled: true, classes: "onyx-negative", style: "margin: 10px;", ontap: "removeNote"}
@@ -28,7 +28,7 @@ enyo.kind({
 
     rendered: function () {
         this.inherited(arguments);
-        this.$.noteInput.applyStyle("width", window.innerWidth > 700 ? 600 + "px" : window.innerWidth-40 + "px");
+        this.$.noteInput.applyStyle("width", !enyo.Panels.isScreenNarrow() ? 420 + "px" : window.innerWidth-40 + "px");
     },
 
     setFocus: function () {
@@ -52,6 +52,11 @@ enyo.kind({
         } else {
             this.$.btDelete.setDisabled(true);
         }
+    },
+
+    handleInput: function (inSender, inEvent) {
+        //enyo.job(this.id + ":update", this.bindSafely("updateNote", inSender.getValue()), 200);
+        return true;
     },
 
     updateNote: function (inSender, inEvent) {
@@ -78,8 +83,9 @@ enyo.kind({
         if(this.$.noteInput.getValue() !== "") {
             this.updateNote();
             this.$.noteInput.setValue(" ");
-        }
-        this.doBack();
+        } else
+            this.doBack();
+        return true;
     },
 
     handleError: function (inMessage) {
@@ -87,5 +93,6 @@ enyo.kind({
             inMessage = inMessage.message;
         this.$.messagePopup.setContent(inMessage);
         this.$.messagePopup.show();
+        return true;
     }
 });

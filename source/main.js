@@ -21,9 +21,8 @@ enyo.kind({
         {name: "notePopup", kind: "biblez.notePopup", onEdit: "handleNoteTap"},
         {name: "footnotePopup", kind: "biblez.footnotePopup"},
         {name: "messagePopup", kind: "onyx.Popup", centered: true, floating: true, classes: "message-popup"},
-        {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true, components: [
-            //{kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}
-        ]},
+        {name: "bcPopup", classes: "biblez-bc-popup", kind: "onyx.Popup", modal: true, floating: true},
+        {name: "stuffPopup", classes: "biblez-notes-popup onyx-light", kind: "onyx.Popup", scrim: true, autoDismiss: false, modal: true, floating: true, centered: true},
         {kind: "enyo.FittableColumns", fit: true, name: "mainView", components: [
             {kind: "enyo.FittableRows", fit: true, components: [
                 {kind: "onyx.Toolbar", showing: false, classes: "main-toolbar", noStretch: true, name: "topTB", layoutKind: "FittableColumnsLayout", components: [
@@ -493,7 +492,14 @@ enyo.kind({
     handleNoteTap: function (inSender, inEvent) {
         if (this.userData[inEvent.osisRef] && this.userData[inEvent.osisRef].noteId !== undefined)
             inEvent["noteId"] = this.userData[inEvent.osisRef].noteId;
-        this.doOpenNotes(inEvent);
+        if(!enyo.Panels.isScreenNarrow()) {
+            if(!this.$.notes) this.$.stuffPopup.createComponent({name: "notes", kind: "biblez.notes", onBack: "closePopup", onChange: "handleNote"}, {owner: this}).render();
+            this.$.notes.setOsisRef(inEvent.osisRef);
+            this.$.notes.setNoteId(inEvent.noteId);
+            this.$.stuffPopup.show();
+        } else
+            this.doOpenNotes(inEvent);
+        this.$.notePopup.hide();
     },
 
     handleNote: function (inSender, inEvent) {
@@ -509,7 +515,7 @@ enyo.kind({
 
     handleBcSelector: function (inSender, inEvent) {
         if(!enyo.Panels.isScreenNarrow()) {
-            this.$.bcPopup.createComponent({kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}, {owner: this}).render();
+            if(!this.$.bcSelector) this.$.bcPopup.createComponent({kind: "biblez.bcSelector", name: "bcSelector", onSelect: "passageChanged", onBack: "closePopup"}, {owner: this}).render();
             this.$.bcSelector.setModule(this.currentModule);
             this.$.bcPopup.showAtEvent(inEvent);
         } else
@@ -520,6 +526,9 @@ enyo.kind({
         if(this.$.bcSelector)
             this.$.bcPopup.destroyClientControls();
         this.$.bcPopup.hide();
+        if(this.$.notes)
+            this.$.stuffPopup.destroyClientControls();
+        this.$.stuffPopup.hide();
     },
 
     handleFontMenu: function (inSender, inEvent) {

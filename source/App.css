@@ -75,6 +75,14 @@
     width: 465px;
 }
 
+.biblez-notes-popup {
+    background: #eee;
+    color: black;
+    height: 250px;
+    width: 465px;
+    border: 0;
+}
+
 .tb-button {
     padding: 5px;
 }
