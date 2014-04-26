@@ -335,6 +335,10 @@ h3, h1 {
     font-size: 0.9em;
 }
 
+.color-button {
+    margin: 0 3px;
+}
+
 .main-toolbar {
     padding: 5px;
 }

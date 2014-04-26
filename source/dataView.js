@@ -23,9 +23,16 @@ enyo.kind({
         {name: "noData", classes: "center", style: "margin-top: 10px;", showing: false},
         {name: "dataList", kind: "AroundList", fit: true, onSetupItem: "setupItem", aboveComponents: [
             {kind: "onyx.Toolbar", layoutKind: "FittableColumnsLayout", components: [
-                {kind: "onyx.InputDecorator", fit: true, noStretch: true, layoutKind: "FittableColumnsLayout", components: [
-                    {kind: "onyx.Input", placeholder: $L("Search..."), fit: true, oninput: "searchInputChange"},
+                {name: "searchField", kind: "onyx.InputDecorator", fit: true, noStretch: true, layoutKind: "FittableColumnsLayout", components: [
+                    {kind: "onyx.Input", name: "searchInput", placeholder: $L("Search..."), fit: true, oninput: "searchInputChange"},
                     {kind: "Image", src: "assets/search-input.png", style: "height: 20px; width: 20px;"}
+                ]},
+                {name: "colorSelector", showing: false, kind: "Group", classes: "center", style: "width: 100%;", defaultKind: "onyx.Button", highlander: false, components: [
+                    {caption: " ", ontap: "searchHighlights", classes: "color-button", color: "rgba(255,99,71,0.5)", style: "background-color: red;"},
+                    {caption: " ", ontap: "searchHighlights", classes: "color-button", color: "rgba(255,255,0,0.5)", style: "background-color: yellow;"},
+                    {caption: " ", ontap: "searchHighlights", classes: "color-button", color: "rgba(152,251,152,0.5)", style: "background-color: green;"},
+                    {caption: " ", ontap: "searchHighlights", classes: "color-button", color: "rgba(238,130,238,0.5)", style: "background-color: violet;"},
+                    {caption: " ", ontap: "searchHighlights", classes: "color-button", color: "rgba(255,165,0,0.5)", style: "background-color: orange;"}
                 ]}
             ]},
         ], components: [
@@ -61,30 +68,44 @@ enyo.kind({
 
     sectionChanged: function (inSender, inEvent) {
         this.filter = null;
+        //this.$.searchInput.setValue("");
         if (this.section === "bookmarks") {
             this.$.rbBm.setActive(true);
+            this.$.searchField.show();
+            this.$.colorSelector.hide();
             api.getAllBookmarks(enyo.bind(this, function (inError, inData) {
                 if(!inError) {
                     this.data = inData;
-                    this.updateList();
+                    if(this.$.searchInput.getValue() !== "")
+                        this.searchInputChange(this.$.searchInput);
+                    else
+                        this.updateList();
                 } else
                     this.handleError(inError);
             }));
         } else if (this.section === "notes") {
             this.$.rbNotes.setActive(true);
+            this.$.searchField.show();
+            this.$.colorSelector.hide();
             api.getAllNotes(enyo.bind(this, function (inError, inData) {
                 if(!inError) {
                     this.data = inData;
-                    this.updateList();
+                    if(this.$.searchInput.getValue() !== "")
+                        this.searchInputChange(this.$.searchInput);
+                    else
+                        this.updateList();
                 } else
                     this.handleError(inError);
             }));
         } else if (this.section === "highlights") {
             this.$.rbHl.setActive(true);
+            this.$.searchField.hide();
+            this.$.colorSelector.show();
             api.getAllHighlights(enyo.bind(this, function (inError, inData) {
                 if(!inError) {
                     this.data = inData;
                     this.updateList();
+                    this.searchHighlights();
                 } else
                     this.handleError(inError);
             }));
@@ -138,6 +159,23 @@ enyo.kind({
         return true;
     },
 
+    searchHighlights: function (inSender, inEvent) {
+        var filter = "";
+        if (inSender) {
+            inSender.addRemoveClass("active", !inSender.hasClass("active"));
+            if (!inSender.hasClass("active")) {
+                inSender.active = false;
+            }
+        }
+
+        var c = this.$.colorSelector.getClientControls();
+        c.forEach(function(item) {
+            if(item.active)
+                filter += (filter === "") ? api.escapeRegExp(item.color) : "|" + api.escapeRegExp(item.color);
+        });
+        this.filterList(filter);
+    },
+
     filterList: function(inFilter) {
         if (inFilter != this.filter) {
             this.filter = inFilter;
@@ -150,7 +188,7 @@ enyo.kind({
         var re = new RegExp(inFilter, "i");
         var r = [];
         for (var i=0, d; (d=this.data[i]); i++) {
-            if (d.osisRef.match(re) || api.formatOsis(d.osisRef).match(re) || (d.text && d.text.match(re))) {
+            if (d.osisRef.match(re) || api.formatOsis(d.osisRef).match(re) || (d.text && d.text.match(re)) || (d.color && d.color.match(re))) {
                 r.push(d);
             }
         }

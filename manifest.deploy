@@ -1,6 +1,6 @@
 {
     "name": "BibleZ",
-    "version": "1.3.7",
+    "version": "1.3.8",
     "description": "BibleZ is an easy to use offline bible reader app for your FirefoxOS device! Enjoy the full bible at your fingertips. <b>Features:</b> <ul><li>many available bibles in different languages (e.g. ESV, KJV, NET (free version), ...)</li><li>notes</li><li>bookmarks</li><li>highlights</li><li>history of last read scriptures</li><li>no internet connection required (only for downloading modules)</li></ul> BibleZ is based on the SWORD Project (http://crosswire.org) and licenced under GPLv3. If you have any problems with this app just send an eMail to <a href:mailto:info@zefanjas.de>info@zefanjas.de</a>!",
     "launch_path": "/index.html",
     "icons": {

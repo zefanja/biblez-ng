@@ -500,5 +500,9 @@ var api = {
             }
         }
         return newArray;
+    },
+
+    escapeRegExp: function (str) {
+        return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     }
 };

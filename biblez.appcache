@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v17 - 2014-04-18
+# v20 - 2014-04-26
 CACHE:
 icon.png
 index.html
@@ -31,6 +31,7 @@ assets/notesTB.png
 assets/notesTB2.png
 assets/oldPaper.png
 assets/search.png
+assets/search-input.png
 assets/settings.png
 assets/twitter_32.png
 assets/spinner.gif
