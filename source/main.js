@@ -471,6 +471,10 @@ enyo.kind({
             this.updateVerses(inEvent.osisRef, {bookmark: true});
         }
         this.handleUserData(inEvent.osisRef);
+        if(this.$.dataView) {
+            //Update personal data in the sidebar
+            this.$.dataView.updateSection();
+        }
     },
 
     handleHighlight: function (inSender, inEvent) {
@@ -480,6 +484,10 @@ enyo.kind({
             //this.updateVerses(inEvent.osisRef, {highlight: true, color: inEvent.color});
         }
         this.handleUserData(inEvent.osisRef);
+        if(this.$.dataView) {
+            //Update personal data in the sidebar
+            this.$.dataView.updateSection();
+        }
     },
 
     handleNoteTap: function (inSender, inEvent) {
@@ -493,6 +501,10 @@ enyo.kind({
             this.updateVerses(inEvent.osisRef, {note: false});
         }
         this.handleUserData(inEvent.osisRef);
+        if(this.$.dataView) {
+            //Update personal data in the sidebar
+            this.$.dataView.updateSection();
+        }
     },
 
     handleBcSelector: function (inSender, inEvent) {
@@ -618,17 +630,6 @@ enyo.kind({
             );
         }
 
-        //Handle user notes
-        /*if(inSender.type === "note") {
-            api.getNote(parseInt(this.verses[inEvent.index].noteId, 10), enyo.bind(this, function (inError, inNote) {
-                if(!inError) {
-                    this.$.notePopup.setText(inNote.text);
-                    this.$.notePopup.setOsisRef(inNote.osisRef);
-                    this.$.notePopup.showAtEvent(inEvent);
-                } else
-                    this.handleError(inError);
-            }));
-        }*/
         return false;
     },
 
