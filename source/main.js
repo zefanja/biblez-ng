@@ -75,7 +75,7 @@ enyo.kind({
                     //{name: "btFont", kind: "onyx.IconButton", src: "assets/font.png", ontap: "handleFontMenu"}
                 ]},
                 {name: "mainPanel", kind: "Panels", draggable: false, /*index: 2, */fit: true, ondragfinish: "handleChangeChapter", onTransitionStart: "handlePanelIndex", arrangerKind: "LeftRightArranger", margin: 0, classes: "background", components: [
-                    {name: "verseList", kind: "VerseList", touch: false, thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
+                    {name: "verseList", kind: "VerseList", thumb: false, touchOverscroll: false, count: 0, onSetupItem: "setVerses", onScroll: "handleOnScroll", classes: "enyo-selectable", components: [
                         {name: "text", allowHtml: true, style: "display: inline;", ontap: "handleVerseTap", onclick: "handleVerseTap"},
                         {name: "imgBm", tag: "img", style: "display: inline;", showing: false, src: "assets/bookmark.png"},
                         {name: "imgNote", content: "", allowHtml: true, style: "display: inline; margin: 0 3px;", showing: false, ontap: "handleVerseTap", onclick: "handleVerseTap"}
@@ -175,7 +175,7 @@ enyo.kind({
                     this.$.mainPanel.selectPanelByName("firstStart");
                     this.$.mainPanel.resized();
                 }
-                this.reflow();
+                this.resized();
             } else {
                 this.handleError(inError);
             }
@@ -812,16 +812,6 @@ enyo.kind({
     handleBack: function (inSender, inEvent) {
         this.$.sidebar.destroyClientControls();
         this.$.sidebar.hide();
-        this.$.mainView.resized();
-        this.$.verseList.reset(this.offset);
-        return true;
-    },
-
-    handleBackLeft: function (inSender, inEvent) {
-        this.$.leftBar.destroyClientControls();
-        this.$.leftBar.hide();
-        this.$.moduleSelector.show();
-        this.$.btnPassage.applyStyle("margin-left", "6px;");
         this.$.mainView.resized();
         this.$.verseList.reset(this.offset);
         return true;
