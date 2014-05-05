@@ -108,11 +108,12 @@ enyo.kind({
 
     create: function () {
         this.inherited(arguments);
-        /*if(enyo.platform.firefox)
-            this.$.verseList.onScroll = "handleScrolling"; */
         this.startUp();
 
-        //this.$.mainPanel.setIndexDirect(2);
+        //improve scrolling performance on Android
+        if(this.$.verseList.getStrategy().get("kind") === "TranslateScrollStrategy")
+            this.$.verseList.getStrategy().set("translateOptimized", true);
+
     },
 
     startUp: function () {

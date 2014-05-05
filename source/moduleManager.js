@@ -34,7 +34,7 @@ enyo.kind({
                 ]}
             ]},
             {name: "panelDescription", kind: "enyo.FittableRows", components: [
-                {kind: enyo.Scroller, fit: true, components: [
+                {name: "descrScroller", kind: enyo.Scroller, fit: true, components: [
                     {name: "detailsContainer", showing: false, classes: "content-container", components: [
                         {name: "detailsName", classes: "title"},
                         {kind: "onyx.Button", ontap: "installModule", name: "btnInstall", classes: "onyx-affirmative", content: $L("Install Module"), style: "margin-left: 10px;"},
@@ -77,6 +77,13 @@ enyo.kind({
         }
         this.getInstalledModules();
         this.started = true;
+
+        //improve scrolling performance on Android
+        if(this.$.langList.getStrategy().get("kind") === "TranslateScrollStrategy") {
+            this.$.langList.getStrategy().set("translateOptimized", true);
+            this.$.modList.getStrategy().set("translateOptimized", true);
+            this.$.descrScroller.getStrategy().set("translateOptimized", true);
+        }
     },
 
     getInstalledModules: function () {
@@ -129,18 +136,11 @@ enyo.kind({
                                 this.saveRepoData(inRepos);
                             } else {
                                 this.handleError(inError);
+                                this.getReopsXHR();
                             }
                         }));
                     } else {
-                        var xhr = new enyo.Ajax({url: "http://zefanjas.de/apps/biblezMasterlist.php"});
-                        xhr.go();
-                        xhr.response(this, function (inSender, inRepos) {
-                            this.saveRepoData(inRepos);
-                        });
-                        xhr.error(this, function (inSender, inResponse) {
-                            console.log(inSender, inResponse);
-                            this.handleError({message: "Couldn't download MasterList!"});
-                        });
+                        this.getReopsXHR();
                     }
                 });
             } //else handle non firefox browser
@@ -148,6 +148,18 @@ enyo.kind({
             this.$.spinner.stop();
             this.handleError({message: $L("You need an internet connection to download modules!")});
         }
+    },
+
+    getReopsXHR: function (){
+        var xhr = new enyo.Ajax({url: "http://zefanjas.de/apps/biblezMasterlist.php"});
+        xhr.go();
+        xhr.response(this, function (inSender, inRepos) {
+            this.saveRepoData(inRepos);
+        });
+        xhr.error(this, function (inSender, inResponse) {
+            this.log(inSender, inResponse);
+            this.handleError({message: "Couldn't download MasterList!"});
+        });
     },
 
     saveRepoData: function (inRepos) {
@@ -202,22 +214,13 @@ enyo.kind({
                                         if(!inError) {
                                             if(!allModules) allModules = {id: "downloadedModules"};
                                             this.handleGotRemoteModules(allModules, inModules, inRepo);
-
                                         } else {
                                             this.handleError((inError.message) ? inError.message : inError);
+                                            this.getRemoteModulesXHR(inRepo, allModules);
                                         }
                                     }));
                                 } else {
-                                    var xhr = new enyo.Ajax({url: "http://zefanjas.de/apps/biblezModules.php"});
-                                    xhr.go({modUrl: inRepo.url});
-                                    xhr.response(this, function (inSender, inModules) {
-                                        inModules = api.cleanArray(inModules).sort(api.dynamicSortMultiple("Lang", "moduleKey"));
-                                        if(!allModules) allModules = {id: "downloadedModules"};
-                                        this.handleGotRemoteModules(allModules, inModules, inRepo);
-                                    });
-                                    xhr.error(this, function (inSender, inResponse) {
-                                        this.handleError({message: "Couldn't download Modules!"});
-                                    });
+                                    this.getRemoteModulesXHR(inRepo, allModules);
                                 }
                             });
                         } //else handle non firefox browser
@@ -230,6 +233,19 @@ enyo.kind({
                 this.handleError(inError);
         }));
 
+    },
+
+    getRemoteModulesXHR: function (inRepo, allModules) {
+        var xhr = new enyo.Ajax({url: "http://zefanjas.de/apps/biblezModules.php"});
+        xhr.go({modUrl: inRepo.url});
+        xhr.response(this, function (inSender, inModules) {
+            inModules = api.cleanArray(inModules).sort(api.dynamicSortMultiple("Lang", "moduleKey"));
+            if(!allModules) allModules = {id: "downloadedModules"};
+            this.handleGotRemoteModules(allModules, inModules, inRepo);
+        });
+        xhr.error(this, function (inSender, inResponse) {
+            this.handleError({message: "Couldn't download Modules!"});
+        });
     },
 
     handleGotRemoteModules: function(allModules, inModules, inRepo) {
@@ -321,32 +337,37 @@ enyo.kind({
                         this.$.progressBar.animateProgressTo(inEvent.loaded/inEvent.total*100);
                     }));
                 } else {
-                    this.$.progressBar.setShowStripes(true);
-                    var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
-                    var url = "http://zefanjas.de/apps/biblezGetModule.php?modKey="+this.currentModule.moduleKey+"&type="+this.currentRepo.type;
-                    xhr.open('GET', url, true);
-                    xhr.responseType = "blob";
-                    xhr.onreadystatechange = enyo.bind(this, function (evt) {
-                        //console.log(xhr.readyState, evt, xhr.status);
-                        if (xhr.readyState == 4) {
-                            if(xhr.status === 200)
-                                sword.installMgr.installModule(xhr.response, enyo.bind(this, this.handleInstalled));
-                            else
-                                this.handleError({message: "Couldn't download module.", error: xhr.status});
-                        }
-                    });
-                    xhr.onprogress = enyo.bind(this, function (inEvent) {
-                        this.$.progressBar.animateProgressTo(100);
-                    });
-                    xhr.onerror = enyo.bind(this, function (inError) {
-                        this.handleError({message: "Couldn't download Module!"});
-                        this.$.btnInstall.show();
-                        this.$.btnRemove.hide();
-                    });
-                    xhr.send(null);
+                    this.installModuleXHR();
                 }
             });
         }
+    },
+
+    installModuleXHR: function () {
+        this.$.progressBar.setShowStripes(true);
+        var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+        var url = "http://zefanjas.de/apps/biblezGetModule.php?modKey="+this.currentModule.moduleKey+"&type="+this.currentRepo.type;
+        xhr.open('GET', url, true);
+        xhr.responseType = "blob";
+        xhr.onreadystatechange = enyo.bind(this, function (evt) {
+            //console.log(xhr.readyState, evt, xhr.status);
+            if (xhr.readyState == 4) {
+                if(xhr.status === 200)
+                    sword.installMgr.installModule(xhr.response, enyo.bind(this, this.handleInstalled));
+                else
+                    this.handleError({message: "Couldn't download module.", error: xhr.status});
+            }
+        });
+        xhr.onprogress = enyo.bind(this, function (inEvent) {
+            this.$.progressBar.animateProgressTo(100);
+        });
+        xhr.onerror = enyo.bind(this, function (inError) {
+            this.handleError({message: "Couldn't download Module!"});
+            this.$.btnInstall.show();
+            this.$.btnInstall.setDisabled(false);
+            this.$.btnRemove.hide();
+        });
+        xhr.send(null);
     },
 
     handleInstalled: function (inError, inModule) {
@@ -356,10 +377,11 @@ enyo.kind({
             this.$.btnInstall.hide();
             this.$.btnRemove.show();
         } else {
-            console.log(inError);
+            this.log(inError);
             this.handleError(inError);
             this.$.btnInstall.show();
             this.$.btnRemove.hide();
+            this.installModuleXHR();
         }
         this.$.progressBar.hide();
         this.$.progressBar.setProgress(0);
