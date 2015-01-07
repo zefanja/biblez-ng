@@ -13,6 +13,9 @@
     "default_locale": "en",
     "type": "privileged",
     "permissions": {
+            "storage": {
+            "description": "Avoid IndexedDB quota Warning"
+        },
         "systemXHR": {
             "description": "Required to download CrossWire's bible modules"
         }
