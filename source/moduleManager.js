@@ -11,7 +11,9 @@ enyo.kind({
         {name: "scrim", kind: "onyx.Scrim", classes: "onyx-scrim-translucent"},
         {kind: "onyx.MoreToolbar", components: [
             {kind: "onyx.IconButton", src: "assets/back.png", ontap: "handleBack"},
-            {content: $L("Module Manager")}
+            {content: $L("Module Manager")},
+            {fit: true},
+            {kind: "onyx.IconButton", src: "assets/refresh.png", ontap: "handleReload"}
         ]},
         {name: "panel", arrangerKind: "CollapsingArranger", fit: true, kind: "Panels", classes: "app-panels", components: [
             {name: "panelLang", kind: "enyo.FittableRows", components: [
@@ -60,6 +62,11 @@ enyo.kind({
     langModules: [],
     currentModule: null,
     installedModules: [],
+
+    handleReload: function() {
+        if(this.currentRepo)
+            this.getRemoteModules(this.currentRepo, true);
+    },
 
     start: function () {
         if (!this.started) {
@@ -140,7 +147,7 @@ enyo.kind({
                             }
                         }));
                     } else {
-                        this.getReopsXHR();
+                        this.getReposXHR();
                     }
                 });
             } //else handle non firefox browser
@@ -150,7 +157,7 @@ enyo.kind({
         }
     },
 
-    getReopsXHR: function (){
+    getReposXHR: function (){
         var xhr = new enyo.Ajax({url: "http://zefanjas.de/apps/biblezMasterlist.php"});
         xhr.go();
         xhr.response(this, function (inSender, inRepos) {
@@ -194,13 +201,13 @@ enyo.kind({
             this.getRemoteModules(cw);
     },
 
-    getRemoteModules: function (inRepo) {
+    getRemoteModules: function (inRepo, inForceReload) {
         this.currentRepo = inRepo;
-        //console.log(inRepo);
+        //console.log(inRepo, inForceReload);
         api.get("downloadedModules", enyo.bind(this, function (inError, allModules) {
             //console.log(inRepo, allModules, this.repos);
             if(!inError) {
-                if(allModules && allModules.hasOwnProperty(inRepo.name.replace(" ", ""))) {
+                if(allModules && allModules.hasOwnProperty(inRepo.name.replace(" ", "")) && !inForceReload) {
                     this.modules = allModules[inRepo.name.replace(" ", "")].modules;
                     this.prepareLangList(this.modules);
                 } else {
